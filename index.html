@@ -95,6 +95,19 @@
   .help-text{font-size:11px;color:var(--muted);margin-top:4px;font-weight:400;text-transform:none;letter-spacing:0}
   .items-add-row{display:flex;gap:8px;align-items:flex-end}
   .items-add-row select,.items-add-row input{font-size:13px;padding:8px}
+  .file-upload-row{display:flex;gap:10px;align-items:center;margin-top:6px}
+  .file-upload-row input[type=file]{font-size:12px;padding:6px;background:var(--panel-2);border:1px dashed var(--border);border-radius:6px;cursor:pointer;color:var(--muted)}
+  .file-upload-row input[type=file]:hover{border-color:var(--primary)}
+  .file-upload-row .upload-status{font-size:11px;color:var(--muted)}
+  .slide-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .slide-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative}
+  .slide-card img{width:100%;aspect-ratio:16/7;object-fit:cover;display:block}
+  .slide-card .slide-info{padding:12px 14px}
+  .slide-card .slide-info h4{font-size:14px;margin-bottom:4px}
+  .slide-card .slide-info .slide-meta{font-size:11px;color:var(--muted)}
+  .slide-card .slide-actions{padding:8px 14px 14px;display:flex;gap:6px}
+  .slide-card .slide-order{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);color:#fff;font-size:11px;padding:2px 8px;border-radius:6px;font-weight:600}
+  .slide-card.inactive{opacity:.5}
   .app-credit{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--muted);opacity:.75;letter-spacing:.4px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
   .app-credit .brand-logos{display:inline-flex;align-items:center;gap:10px}
   .app-credit svg.brand{display:block;height:32px;width:auto}
@@ -119,6 +132,7 @@
   <button class="nav-btn" data-view="clientes">👤 Clientes</button>
   <button class="nav-btn" data-view="proveedores">🏭 Proveedores</button>
   <button class="nav-btn" data-view="compras">📋 Órdenes de compra</button>
+  <button class="nav-btn" data-view="slider">🖼️ Slider ofertas</button>
   <button class="nav-btn" data-view="alertas">⚠️ Alertas <span class="badge warn" id="alertBadge" style="display:none">0</span></button>
   <button class="nav-btn" data-view="reportes">📈 Reportes</button>
   <button class="nav-btn" data-view="config">⚙️ Configuración</button>
@@ -282,6 +296,17 @@
   </div>
 </section>
 
+<!-- SLIDER OFERTAS -->
+<section id="view-slider" class="view" style="display:none">
+  <div class="header">
+    <div><h2>Slider de ofertas</h2><div class="sub">Imágenes que aparecen como carrusel en la tienda pública · cada una enlaza a una categoría</div></div>
+    <button class="btn" onclick="openSlideModal()">+ Nuevo slide</button>
+  </div>
+  <div class="slide-cards" id="slideCards">
+    <div class="empty" style="grid-column:1/-1">Sin slides configurados</div>
+  </div>
+</section>
+
 <!-- ALERTAS -->
 <section id="view-alertas" class="view" style="display:none">
   <div class="header">
@@ -404,8 +429,15 @@
       <div><label>Categoría</label><input id="p-cat" placeholder="Ej: Remeras" list="catList" /><datalist id="catList"></datalist></div>
       <div style="grid-column:1/-1"><label>Nombre</label><input id="p-name" placeholder="Ej: Remera blanca M" /></div>
       <div style="grid-column:1/-1">
-        <label>URL de imagen</label>
+        <label>Imagen — URL</label>
         <input id="p-imageUrl" placeholder="https://..." oninput="updateImgPreview()" />
+      </div>
+      <div style="grid-column:1/-1">
+        <label>O subir desde dispositivo</label>
+        <div class="file-upload-row">
+          <input type="file" id="p-imageFile" accept="image/*" />
+          <span class="upload-status" id="p-uploadStatus"></span>
+        </div>
       </div>
       <div style="grid-column:1/-1" id="imgPreviewWrap" style="display:none">
         <label>Vista previa</label>
@@ -524,6 +556,50 @@
   </div>
 </div>
 
+<!-- Modal: Slide -->
+<div class="modal-bg" id="modal-slide">
+  <div class="modal" style="max-width:600px">
+    <h3 id="slideModalTitle">Nuevo slide</h3>
+    <div class="form-grid">
+      <div style="grid-column:1/-1">
+        <label>Imagen — URL</label>
+        <input id="sl-imageUrl" placeholder="https://..." oninput="updateSlidePreview()" />
+      </div>
+      <div style="grid-column:1/-1">
+        <label>O subir desde dispositivo</label>
+        <div class="file-upload-row">
+          <input type="file" id="sl-imageFile" accept="image/*" />
+          <span class="upload-status" id="sl-uploadStatus"></span>
+        </div>
+      </div>
+      <div style="grid-column:1/-1" id="slPreviewWrap" style="display:none">
+        <img id="slPreview" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border)" />
+      </div>
+      <div style="grid-column:1/-1"><label>Título (opcional)</label><input id="sl-title" placeholder="Ej: Liquidación de verano" /></div>
+      <div style="grid-column:1/-1"><label>Subtítulo (opcional)</label><input id="sl-subtitle" placeholder="Ej: Hasta 40% OFF en remeras" /></div>
+      <div>
+        <label>Enlace a categoría</label>
+        <select id="sl-linkCat"><option value="">— Todas —</option></select>
+        <div class="help-text">Al tocar el slide, filtra los productos por esta categoría</div>
+      </div>
+      <div>
+        <label>O enlace personalizado</label>
+        <input id="sl-linkUrl" placeholder="https://..." />
+        <div class="help-text">Si se completa, tiene prioridad sobre la categoría</div>
+      </div>
+      <div><label>Orden</label><input id="sl-order" type="number" min="1" value="1" /></div>
+      <div>
+        <label>Activo</label>
+        <select id="sl-active"><option value="true">Sí</option><option value="false">No</option></select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn secondary" onclick="closeModal('slide')">Cancelar</button>
+      <button class="btn" id="saveSlideBtn" onclick="saveSlide()">Guardar slide</button>
+    </div>
+  </div>
+</div>
+
 <!-- jsPDF for PDF generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 
@@ -533,6 +609,9 @@ import {
   getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, getDoc, getDocs,
   onSnapshot, runTransaction, serverTimestamp, query, orderBy, writeBatch, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
@@ -552,13 +631,24 @@ const ordersCol = collection(db, "orders");
 const customersCol = collection(db, "customers");
 const suppliersCol = collection(db, "suppliers");
 const purchaseOrdersCol = collection(db, "purchaseOrders");
+const slidesCol = collection(db, "slides");
 const configRef = doc(db, "config", "store");
+const storage = getStorage(app);
 
 const state = {
-  products: [], movements: [], orders: [], customers: [], suppliers: [], purchaseOrders: [],
+  products: [], movements: [], orders: [], customers: [], suppliers: [], purchaseOrders: [], slides: [],
   config: {}, editingProdId: null, editingOrderId: null, editingSupplierId: null,
-  compraItems: [], editingCompraId: null
+  compraItems: [], editingCompraId: null, editingSlideId: null
 };
+
+// ===== IMAGE UPLOAD =====
+async function uploadImage(file, folder='images'){
+  const ext = file.name.split('.').pop();
+  const name = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.${ext}`;
+  const sRef = storageRef(storage, name);
+  const snap = await uploadBytes(sRef, file);
+  return await getDownloadURL(snap.ref);
+}
 
 function toast(msg, type='success'){
   const el = document.createElement('div');
@@ -621,6 +711,10 @@ onSnapshot(suppliersCol,
 );
 onSnapshot(query(purchaseOrdersCol, orderBy('createdAt','desc')),
   snap => { state.purchaseOrders = snap.docs.map(d => ({id:d.id, ...d.data()})); render(); },
+  err => console.error(err)
+);
+onSnapshot(query(slidesCol, orderBy('order','asc')),
+  snap => { state.slides = snap.docs.map(d => ({id:d.id, ...d.data()})); render(); },
   err => console.error(err)
 );
 onSnapshot(configRef, snap => {
@@ -692,12 +786,22 @@ function updateImgPreview(){
 async function saveProduct(){
   const get = id=>document.getElementById('p-'+id).value.trim();
   const sku = get('sku'), name = get('name'), cat = get('cat')||'Sin categoría';
-  const imageUrl = get('imageUrl');
+  let imageUrl = get('imageUrl');
   const cost = parseFloat(get('cost'))||0, price = parseFloat(get('price'))||0;
   const stock = parseInt(get('stock'))||0, min = parseInt(get('min'))||0;
   if(!sku || !name){ alert('SKU y nombre son obligatorios'); return; }
   const btn = document.getElementById('saveProdBtn');
   btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Guardando...';
+  // Upload file if selected
+  const fileInput = document.getElementById('p-imageFile');
+  if(fileInput.files.length>0){
+    try{
+      document.getElementById('p-uploadStatus').textContent = 'Subiendo imagen...';
+      imageUrl = await uploadImage(fileInput.files[0], 'products');
+      document.getElementById('p-imageUrl').value = imageUrl;
+      document.getElementById('p-uploadStatus').textContent = '✓ Subida';
+    }catch(e){ toast('Error subiendo imagen: '+e.message,'error'); btn.disabled=false; btn.textContent='Guardar'; return; }
+  }
   try{
     if(state.editingProdId){
       await updateDoc(doc(db, 'products', state.editingProdId), {sku, name, cat, cost, price, stock, min, imageUrl});
@@ -1183,6 +1287,81 @@ function generateOCPDF(ocId){
   toast('Orden de compra PDF descargada ✓');
 }
 
+// ===== SLIDER =====
+function openSlideModal(id=null){
+  state.editingSlideId = id;
+  const catSel = document.getElementById('sl-linkCat');
+  const cats = [...new Set(state.products.map(p=>p.cat))].filter(Boolean);
+  catSel.innerHTML = '<option value="">— Todas (sin filtro) —</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(id){
+    const sl = state.slides.find(x=>x.id===id);
+    document.getElementById('slideModalTitle').textContent = 'Editar slide';
+    document.getElementById('sl-imageUrl').value = sl.imageUrl||'';
+    document.getElementById('sl-title').value = sl.title||'';
+    document.getElementById('sl-subtitle').value = sl.subtitle||'';
+    document.getElementById('sl-linkCat').value = sl.linkCategory||'';
+    document.getElementById('sl-linkUrl').value = sl.linkUrl||'';
+    document.getElementById('sl-order').value = sl.order||1;
+    document.getElementById('sl-active').value = sl.active===false?'false':'true';
+  }else{
+    document.getElementById('slideModalTitle').textContent = 'Nuevo slide';
+    ['imageUrl','title','subtitle','linkUrl'].forEach(k=>document.getElementById('sl-'+k).value='');
+    document.getElementById('sl-linkCat').value = '';
+    document.getElementById('sl-order').value = state.slides.length+1;
+    document.getElementById('sl-active').value = 'true';
+  }
+  document.getElementById('sl-imageFile').value = '';
+  document.getElementById('sl-uploadStatus').textContent = '';
+  updateSlidePreview();
+  document.getElementById('modal-slide').classList.add('show');
+}
+function updateSlidePreview(){
+  const url = document.getElementById('sl-imageUrl').value.trim();
+  const wrap = document.getElementById('slPreviewWrap');
+  const img = document.getElementById('slPreview');
+  if(url){wrap.style.display='block';img.src=url;img.onerror=()=>{img.src='';wrap.style.display='none'};}
+  else wrap.style.display='none';
+}
+async function saveSlide(){
+  let imageUrl = document.getElementById('sl-imageUrl').value.trim();
+  const title = document.getElementById('sl-title').value.trim();
+  const subtitle = document.getElementById('sl-subtitle').value.trim();
+  const linkCategory = document.getElementById('sl-linkCat').value;
+  const linkUrl = document.getElementById('sl-linkUrl').value.trim();
+  const order = parseInt(document.getElementById('sl-order').value)||1;
+  const active = document.getElementById('sl-active').value !== 'false';
+  const btn = document.getElementById('saveSlideBtn');
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span> Guardando...';
+  // Upload file if selected
+  const fileInput = document.getElementById('sl-imageFile');
+  if(fileInput.files.length>0){
+    try{
+      document.getElementById('sl-uploadStatus').textContent = 'Subiendo imagen...';
+      imageUrl = await uploadImage(fileInput.files[0], 'slides');
+      document.getElementById('sl-imageUrl').value = imageUrl;
+      document.getElementById('sl-uploadStatus').textContent = '✓ Subida';
+    }catch(e){ toast('Error subiendo imagen: '+e.message,'error'); btn.disabled=false; btn.textContent='Guardar slide'; return; }
+  }
+  if(!imageUrl){ toast('Debés proporcionar una imagen (URL o archivo)','error'); btn.disabled=false; btn.textContent='Guardar slide'; return; }
+  try{
+    const data = {imageUrl, title, subtitle, linkCategory, linkUrl, order, active};
+    if(state.editingSlideId){
+      await updateDoc(doc(db,'slides',state.editingSlideId), data);
+      toast('Slide actualizado');
+    }else{
+      data.createdAt = serverTimestamp();
+      await addDoc(slidesCol, data);
+      toast('Slide creado');
+    }
+    closeModal('slide');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='Guardar slide';
+}
+async function deleteSlide(id){
+  if(!confirm('¿Eliminar este slide?')) return;
+  try{ await deleteDoc(doc(db,'slides',id)); toast('Slide eliminado'); }catch(e){ toast('Error: '+e.message,'error'); }
+}
+
 // ===== CONFIG =====
 function fillConfigForm(){
   const c = state.config;
@@ -1237,6 +1416,10 @@ async function seedDemo(){
     batch.set(sup1, {name:'Distribuidora Textil SA', rut:'21-234567-0001-56', phone:'099 456 789', email:'ventas@textilsa.com', address:'Av. Libertador 1234, Montevideo', notes:'Entrega en 48hs. Pago a 30 días.', createdAt:serverTimestamp()});
     const sup2 = doc(suppliersCol);
     batch.set(sup2, {name:'Calzados del Sur', rut:'21-345678-0001-90', phone:'098 123 456', email:'pedidos@calzadosur.com', address:'Ruta 5 km 42, Canelones', notes:'Mínimo 10 pares por pedido.', createdAt:serverTimestamp()});
+    // Seed slides demo
+    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&h=500&fit=crop', title:'Nueva colección', subtitle:'Remeras y buzos para esta temporada', linkCategory:'Remeras', linkUrl:'', order:1, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&h=500&fit=crop', title:'Calzado deportivo', subtitle:'Las mejores zapatillas al mejor precio', linkCategory:'Calzado', linkUrl:'', order:2, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=500&fit=crop', title:'Accesorios', subtitle:'Mochilas, gorras y más', linkCategory:'Accesorios', linkUrl:'', order:3, active:true, createdAt:serverTimestamp()});
     const cfgSnap = await getDoc(configRef);
     if(!cfgSnap.exists()){
       batch.set(configRef, {
@@ -1245,13 +1428,13 @@ async function seedDemo(){
       });
     }
     await batch.commit();
-    toast('Datos demo cargados (productos + proveedores) ✓');
+    toast('Datos demo cargados (productos + proveedores + slides) ✓');
   }catch(e){ toast('Error: '+e.message,'error'); }
   btn.disabled=false; btn.textContent='🌱 Cargar datos demo';
 }
 
 function exportJSON(){
-  const data = JSON.stringify({products:state.products, movements:state.movements, orders:state.orders, customers:state.customers, suppliers:state.suppliers, purchaseOrders:state.purchaseOrders, config:state.config},null,2);
+  const data = JSON.stringify({products:state.products, movements:state.movements, orders:state.orders, customers:state.customers, suppliers:state.suppliers, purchaseOrders:state.purchaseOrders, slides:state.slides, config:state.config},null,2);
   const blob = new Blob([data],{type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='mybusiness-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
@@ -1428,6 +1611,30 @@ function renderCompras(){
   }).join('') || '<tr><td colspan="6" class="empty">Sin órdenes de compra</td></tr>';
 }
 
+function renderSlider(){
+  const container = document.getElementById('slideCards');
+  if(state.slides.length===0){
+    container.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin slides configurados. Usá "+ Nuevo slide" para agregar imágenes de ofertas.</div>';
+    return;
+  }
+  container.innerHTML = state.slides.map(sl=>{
+    const linkText = sl.linkUrl ? sl.linkUrl : (sl.linkCategory ? `Categoría: ${sl.linkCategory}` : 'Todos los productos');
+    return `<div class="slide-card ${sl.active===false?'inactive':''}">
+      <span class="slide-order">#${sl.order}</span>
+      <img src="${sl.imageUrl}" alt="${sl.title||''}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22175%22><rect fill=%22%23273449%22 width=%22400%22 height=%22175%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2216%22>Sin imagen</text></svg>'" />
+      <div class="slide-info">
+        <h4>${sl.title||'(Sin título)'}</h4>
+        <div class="slide-meta">${sl.subtitle||''}</div>
+        <div class="slide-meta" style="margin-top:4px">🔗 ${linkText} ${sl.active===false?'· <span style="color:var(--warning)">Inactivo</span>':''}</div>
+      </div>
+      <div class="slide-actions">
+        <button class="btn small secondary" onclick="openSlideModal('${sl.id}')">Editar</button>
+        <button class="btn small danger" onclick="deleteSlide('${sl.id}')">Eliminar</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function renderAlertas(){
   const lows = state.products.filter(p=>p.stock<=p.min).sort((a,b)=>a.stock-b.stock);
   document.getElementById('alertTable').innerHTML = lows.map(p=>{
@@ -1486,7 +1693,7 @@ function renderReportes(){
 }
 
 function render(){
-  renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderClientes(); renderProveedores(); renderCompras(); renderAlertas(); renderReportes();
+  renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderClientes(); renderProveedores(); renderCompras(); renderSlider(); renderAlertas(); renderReportes();
 }
 
 ['searchProd','filterCat','filterStock'].forEach(id=>document.getElementById(id).addEventListener('input',renderCatalogo));
@@ -1519,6 +1726,10 @@ window.changeCompraStatus = changeCompraStatus;
 window.generateRemitoPDF = generateRemitoPDF;
 window.generateOCPDF = generateOCPDF;
 window.openClientModal = openClientModal;
+window.openSlideModal = openSlideModal;
+window.updateSlidePreview = updateSlidePreview;
+window.saveSlide = saveSlide;
+window.deleteSlide = deleteSlide;
 
 document.getElementById('seedBtn').addEventListener('click', seedDemo);
 document.getElementById('exportBtn').addEventListener('click', exportJSON);
