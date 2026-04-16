@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tienda &amp; Gestión de Stock</title>
+<title>MyBusiness — Tienda &amp; Stock</title>
 <style>
   :root{
     --bg:#0f172a; --panel:#1e293b; --panel-2:#273449; --text:#e2e8f0; --muted:#94a3b8;
@@ -12,15 +12,16 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
-  /* Sidebar */
   aside{width:240px;background:var(--panel);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:8px;position:sticky;top:0;height:100vh}
-  aside h1{font-size:18px;margin-bottom:24px;display:flex;align-items:center;gap:8px}
+  aside h1{font-size:18px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
   aside h1 span{color:var(--primary)}
+  .status-pill{font-size:11px;padding:4px 8px;border-radius:10px;margin-bottom:16px;text-align:center;background:var(--panel-2);color:var(--muted)}
+  .status-pill.online{background:rgba(34,197,94,.15);color:var(--success)}
+  .status-pill.error{background:rgba(239,68,68,.15);color:var(--danger)}
   .nav-btn{background:transparent;border:none;color:var(--muted);text-align:left;padding:12px 14px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:10px;transition:all .15s}
   .nav-btn:hover{background:var(--panel-2);color:var(--text)}
   .nav-btn.active{background:var(--primary);color:#fff}
   .nav-btn .badge{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600}
-  /* Main */
   main{flex:1;padding:32px 40px;overflow-y:auto;max-height:100vh}
   .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
   .header h2{font-size:24px}
@@ -32,16 +33,14 @@
   .btn.success{background:var(--success)}
   .btn.danger{background:var(--danger)}
   .btn.small{padding:6px 12px;font-size:12px}
-  /* Cards / KPI */
+  .btn:disabled{opacity:.5;cursor:not-allowed}
   .grid{display:grid;gap:16px}
   .kpis{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:24px}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px}
   .kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
   .kpi .value{font-size:26px;font-weight:700}
   .kpi .delta{font-size:12px;color:var(--muted);margin-top:4px}
-  .kpi .delta.up{color:var(--success)} .kpi .delta.down{color:var(--danger)}
   .kpi.alert .value{color:var(--warning)}
-  /* Table */
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;padding:12px;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
   td{padding:12px;border-bottom:1px solid var(--border)}
@@ -53,20 +52,17 @@
   .pill.in{background:rgba(59,130,246,.15);color:var(--primary)}
   .pill.online{background:rgba(139,92,246,.15);color:var(--accent)}
   .pill.fisica{background:rgba(34,197,94,.15);color:var(--success)}
-  /* Inputs */
   input,select,textarea{background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:6px;font-size:14px;width:100%;font-family:inherit}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
   label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
   .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
   .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
   .toolbar input,.toolbar select{max-width:240px}
-  /* Modal */
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
   .modal-bg.show{display:flex}
   .modal{background:var(--panel);border-radius:12px;padding:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto}
   .modal h3{margin-bottom:18px;font-size:18px}
   .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
-  /* Charts */
   .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
   @media(max-width:900px){.chart-row{grid-template-columns:1fr}}
   .bar-chart{display:flex;flex-direction:column;gap:10px}
@@ -74,15 +70,19 @@
   .bar-row .name{width:120px;color:var(--muted);text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
   .bar-row .bar{flex:1;height:18px;background:var(--panel-2);border-radius:6px;overflow:hidden}
   .bar-row .bar div{height:100%;background:var(--primary);border-radius:6px;transition:width .3s}
-  .bar-row .val{width:80px;text-align:right;font-weight:600}
+  .bar-row .val{width:90px;text-align:right;font-weight:600}
   .alert-banner{background:rgba(245,158,11,.1);border:1px solid var(--warning);color:var(--warning);padding:14px;border-radius:8px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:14px}
   .empty{text-align:center;padding:40px;color:var(--muted)}
-  .icon{width:18px;height:18px;display:inline-block;vertical-align:middle}
-  /* Mobile */
+  .loader{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--border);padding:14px 18px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;font-size:14px;max-width:320px;animation:slideIn .3s ease}
+  .toast.success{border-left:4px solid var(--success)}
+  .toast.error{border-left:4px solid var(--danger)}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
   @media(max-width:768px){
     body{flex-direction:column}
-    aside{width:100%;height:auto;position:relative;flex-direction:row;overflow-x:auto;padding:12px}
-    aside h1{display:none}
+    aside{width:100%;height:auto;position:relative;flex-direction:row;overflow-x:auto;padding:12px;flex-wrap:wrap}
+    aside h1,.status-pill{width:100%}
     main{padding:20px}
   }
 </style>
@@ -91,31 +91,31 @@
 
 <aside>
   <h1>📦 <span>StockPro</span></h1>
+  <div id="fbStatus" class="status-pill">Conectando a Firestore…</div>
   <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
   <button class="nav-btn" data-view="catalogo">🏷️ Catálogo</button>
   <button class="nav-btn" data-view="movimientos">🔄 Movimientos</button>
   <button class="nav-btn" data-view="alertas">⚠️ Alertas <span class="badge" id="alertBadge" style="display:none">0</span></button>
   <button class="nav-btn" data-view="reportes">📈 Reportes</button>
   <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--border)">
-    <button class="nav-btn" id="exportBtn">⬇️ Exportar datos</button>
-    <button class="nav-btn" id="resetBtn" style="color:var(--danger)">🗑️ Reiniciar demo</button>
+    <button class="nav-btn" id="seedBtn">🌱 Cargar datos demo</button>
+    <button class="nav-btn" id="exportBtn">⬇️ Exportar JSON</button>
   </div>
 </aside>
 
 <main>
-  <!-- DASHBOARD -->
   <section id="view-dashboard" class="view">
     <div class="header">
       <div>
         <h2>Dashboard</h2>
-        <div class="sub">Vista general de la tienda mixta (física + online)</div>
+        <div class="sub">Vista general de la tienda mixta (física + online) — datos en Firestore</div>
       </div>
       <button class="btn" onclick="openModal('mov')">+ Registrar movimiento</button>
     </div>
     <div id="alertSummary"></div>
     <div class="grid kpis">
       <div class="card kpi"><div class="label">Productos activos</div><div class="value" id="kpi-prods">0</div><div class="delta">en catálogo</div></div>
-      <div class="card kpi"><div class="label">Valor inventario</div><div class="value" id="kpi-valor">$0</div><div class="delta">precio costo</div></div>
+      <div class="card kpi"><div class="label">Valor inventario</div><div class="value" id="kpi-valor">$0</div><div class="delta">a precio costo</div></div>
       <div class="card kpi"><div class="label">Ventas (30d)</div><div class="value" id="kpi-ventas">$0</div><div class="delta" id="kpi-ventas-cnt">0 transacciones</div></div>
       <div class="card kpi alert"><div class="label">Stock bajo</div><div class="value" id="kpi-low">0</div><div class="delta">requieren reposición</div></div>
     </div>
@@ -138,7 +138,6 @@
     </div>
   </section>
 
-  <!-- CATÁLOGO -->
   <section id="view-catalogo" class="view" style="display:none">
     <div class="header">
       <div><h2>Catálogo de productos</h2><div class="sub">Alta, baja y modificación de productos</div></div>
@@ -164,7 +163,6 @@
     </div>
   </section>
 
-  <!-- MOVIMIENTOS -->
   <section id="view-movimientos" class="view" style="display:none">
     <div class="header">
       <div><h2>Movimientos de stock</h2><div class="sub">Entradas (compras) y salidas (ventas) por canal</div></div>
@@ -193,7 +191,6 @@
     </div>
   </section>
 
-  <!-- ALERTAS -->
   <section id="view-alertas" class="view" style="display:none">
     <div class="header">
       <div><h2>Alertas de stock bajo</h2><div class="sub">Productos que llegaron al mínimo definido</div></div>
@@ -206,7 +203,6 @@
     </div>
   </section>
 
-  <!-- REPORTES -->
   <section id="view-reportes" class="view" style="display:none">
     <div class="header">
       <div><h2>Reportes y análisis</h2><div class="sub">Indicadores clave del negocio</div></div>
@@ -237,7 +233,6 @@
   </section>
 </main>
 
-<!-- Modal: Producto -->
 <div class="modal-bg" id="modal-prod">
   <div class="modal">
     <h3 id="prodModalTitle">Nuevo producto</h3>
@@ -252,12 +247,11 @@
     </div>
     <div class="actions">
       <button class="btn secondary" onclick="closeModal('prod')">Cancelar</button>
-      <button class="btn" onclick="saveProduct()">Guardar</button>
+      <button class="btn" id="saveProdBtn" onclick="saveProduct()">Guardar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: Movimiento -->
 <div class="modal-bg" id="modal-mov">
   <div class="modal">
     <h3>Registrar movimiento</h3>
@@ -275,53 +269,80 @@
     </div>
     <div class="actions">
       <button class="btn secondary" onclick="closeModal('mov')">Cancelar</button>
-      <button class="btn" onclick="saveMovement()">Registrar</button>
+      <button class="btn" id="saveMovBtn" onclick="saveMovement()">Registrar</button>
     </div>
   </div>
 </div>
 
-<script>
-// ============ DATOS ============
-let state = {
-  products: [],
-  movements: [],
-  editingProdId: null
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, runTransaction, serverTimestamp, query, orderBy, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
+  authDomain: "mybusiness-ee7a4.firebaseapp.com",
+  projectId: "mybusiness-ee7a4",
+  storageBucket: "mybusiness-ee7a4.firebasestorage.app",
+  messagingSenderId: "1094706581573",
+  appId: "1:1094706581573:web:8129a8d26c6ba195ea532c",
+  measurementId: "G-BC7JLJ1KBC"
 };
 
-// Datos demo
-function seedDemo(){
-  state.products = [
-    {id:1, sku:"REM-001", name:"Remera blanca básica", cat:"Remeras", cost:450, price:1200, stock:32, min:10},
-    {id:2, sku:"REM-002", name:"Remera negra estampada", cat:"Remeras", cost:520, price:1500, stock:8, min:10},
-    {id:3, sku:"PAN-001", name:"Pantalón jean clásico", cat:"Pantalones", cost:1200, price:3200, stock:18, min:5},
-    {id:4, sku:"PAN-002", name:"Pantalón cargo verde", cat:"Pantalones", cost:1400, price:3800, stock:3, min:5},
-    {id:5, sku:"BUZ-001", name:"Buzo canguro gris", cat:"Buzos", cost:1800, price:4500, stock:15, min:8},
-    {id:6, sku:"ACC-001", name:"Gorra trucker negra", cat:"Accesorios", cost:380, price:1100, stock:0, min:5},
-    {id:7, sku:"ACC-002", name:"Mochila urbana", cat:"Accesorios", cost:2200, price:5500, stock:7, min:3},
-    {id:8, sku:"CAL-001", name:"Zapatillas running 42", cat:"Calzado", cost:3500, price:8900, stock:12, min:4}
-  ];
-  const today = new Date();
-  const days = (n)=>new Date(today.getTime()-n*86400000).toISOString();
-  state.movements = [
-    {id:1, prodId:1, tipo:"salida", canal:"fisica", qty:5, price:1200, date:days(2), notes:"Venta local"},
-    {id:2, prodId:1, tipo:"salida", canal:"online", qty:3, price:1200, date:days(5), notes:""},
-    {id:3, prodId:3, tipo:"salida", canal:"online", qty:2, price:3200, date:days(1), notes:"Pedido #1142"},
-    {id:4, prodId:5, tipo:"entrada", canal:"proveedor", qty:20, price:1800, date:days(15), notes:"Reposición mensual"},
-    {id:5, prodId:8, tipo:"salida", canal:"fisica", qty:1, price:8900, date:days(3), notes:""},
-    {id:6, prodId:2, tipo:"salida", canal:"online", qty:4, price:1500, date:days(7), notes:""},
-    {id:7, prodId:7, tipo:"salida", canal:"fisica", qty:2, price:5500, date:days(10), notes:""},
-    {id:8, prodId:4, tipo:"salida", canal:"online", qty:2, price:3800, date:days(4), notes:""}
-  ];
-  save();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const productsCol = collection(db, "products");
+const movementsCol = collection(db, "movements");
+
+const state = { products: [], movements: [], editingProdId: null };
+
+function toast(msg, type='success'){
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+function setStatus(txt, cls=''){
+  const el = document.getElementById('fbStatus');
+  el.textContent = txt;
+  el.className = 'status-pill '+cls;
+}
+function fmt(n){return '$'+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fmtDate(d){
+  if(!d) return '—';
+  const date = d.toDate ? d.toDate() : new Date(d);
+  return date.toLocaleDateString('es-AR')+' '+date.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+}
+function daysAgo(n){return new Date(Date.now()-n*86400000)}
+function stockStatus(p){
+  if(p.stock<=0) return {pill:'out', label:'Sin stock'};
+  if(p.stock<=p.min) return {pill:'low', label:'Bajo'};
+  return {pill:'ok', label:'OK'};
 }
 
-function save(){
-  // En memoria solamente (no localStorage)
-  render();
-}
-function nextId(arr){return arr.length?Math.max(...arr.map(x=>x.id))+1:1}
+onSnapshot(productsCol,
+  snap => {
+    state.products = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    setStatus('● Conectado a Firestore', 'online');
+    render();
+  },
+  err => {
+    console.error(err);
+    setStatus('Error: '+err.code, 'error');
+    toast('Error conectando con Firestore: '+err.message, 'error');
+  }
+);
+onSnapshot(query(movementsCol, orderBy('date','desc')),
+  snap => {
+    state.movements = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    render();
+  },
+  err => console.error(err)
+);
 
-// ============ NAV ============
 document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
   btn.onclick = ()=>{
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -331,17 +352,14 @@ document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
   };
 });
 
-// ============ MODALES ============
 function openModal(name, id=null){
   if(name==='prod'){
     state.editingProdId = id;
+    const fields = ['sku','cat','name','cost','price','stock','min'];
     if(id){
       const p = state.products.find(x=>x.id===id);
       document.getElementById('prodModalTitle').textContent = 'Editar producto';
-      ['sku','cat','name','cost','price','stock','min'].forEach(k=>{
-        const map={sku:'sku',cat:'cat',name:'name',cost:'cost',price:'price',stock:'stock',min:'min'};
-        document.getElementById('p-'+k).value = p[map[k]];
-      });
+      fields.forEach(k=>document.getElementById('p-'+k).value = p[k] ?? '');
     }else{
       document.getElementById('prodModalTitle').textContent = 'Nuevo producto';
       ['sku','cat','name','cost','price'].forEach(k=>document.getElementById('p-'+k).value='');
@@ -361,57 +379,105 @@ function openModal(name, id=null){
 }
 function closeModal(name){document.getElementById('modal-'+name).classList.remove('show')}
 
-// ============ PRODUCTOS ============
-function saveProduct(){
+async function saveProduct(){
   const get = id=>document.getElementById('p-'+id).value.trim();
   const sku = get('sku'), name = get('name'), cat = get('cat')||'Sin categoría';
   const cost = parseFloat(get('cost'))||0, price = parseFloat(get('price'))||0;
   const stock = parseInt(get('stock'))||0, min = parseInt(get('min'))||0;
   if(!sku || !name){ alert('SKU y nombre son obligatorios'); return; }
-  if(state.editingProdId){
-    const p = state.products.find(x=>x.id===state.editingProdId);
-    Object.assign(p, {sku, name, cat, cost, price, stock, min});
-  }else{
-    if(state.products.some(p=>p.sku===sku)){ alert('Ya existe un producto con ese SKU'); return; }
-    state.products.push({id:nextId(state.products), sku, name, cat, cost, price, stock, min});
-  }
-  closeModal('prod');
-  save();
-}
-function deleteProduct(id){
-  if(!confirm('¿Eliminar este producto? Sus movimientos quedarán huérfanos.')) return;
-  state.products = state.products.filter(p=>p.id!==id);
-  save();
+  const btn = document.getElementById('saveProdBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Guardando...';
+  try{
+    if(state.editingProdId){
+      await updateDoc(doc(db, 'products', state.editingProdId), {sku, name, cat, cost, price, stock, min});
+      toast('Producto actualizado');
+    }else{
+      if(state.products.some(p=>p.sku===sku)){ alert('Ya existe un producto con ese SKU'); btn.disabled=false; btn.textContent='Guardar'; return; }
+      await addDoc(productsCol, {sku, name, cat, cost, price, stock, min, createdAt: serverTimestamp()});
+      toast('Producto creado');
+    }
+    closeModal('prod');
+  }catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
+  btn.disabled=false; btn.textContent='Guardar';
 }
 
-// ============ MOVIMIENTOS ============
-function saveMovement(){
-  const prodId = parseInt(document.getElementById('m-prod').value);
+async function deleteProduct(id){
+  if(!confirm('¿Eliminar este producto? Sus movimientos históricos quedan registrados pero huérfanos.')) return;
+  try{
+    await deleteDoc(doc(db, 'products', id));
+    toast('Producto eliminado');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+}
+
+async function saveMovement(){
+  const prodId = document.getElementById('m-prod').value;
   const tipo = document.getElementById('m-tipo').value;
   const canal = document.getElementById('m-canal').value;
   const qty = parseInt(document.getElementById('m-qty').value)||0;
-  const price = parseFloat(document.getElementById('m-price').value)||0;
+  const priceInput = parseFloat(document.getElementById('m-price').value);
   const notes = document.getElementById('m-notes').value;
   if(!prodId || qty<=0){ alert('Producto y cantidad son obligatorios'); return; }
-  const p = state.products.find(x=>x.id===prodId);
-  if(tipo==='salida' && qty>p.stock){
-    if(!confirm(`Stock insuficiente (${p.stock} disponibles). ¿Registrar igual y dejar stock en negativo?`)) return;
+  const btn = document.getElementById('saveMovBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Registrando...';
+  try{
+    const prodRef = doc(db, 'products', prodId);
+    const movRef = doc(movementsCol);
+    await runTransaction(db, async (tx)=>{
+      const pSnap = await tx.get(prodRef);
+      if(!pSnap.exists()) throw new Error('Producto no encontrado');
+      const p = pSnap.data();
+      const finalPrice = !isNaN(priceInput) && priceInput>0 ? priceInput : (tipo==='entrada' ? p.cost : p.price);
+      if(tipo==='salida' && qty>p.stock){
+        if(!confirm(`Stock insuficiente (${p.stock} disponibles). ¿Registrar igual y dejar stock en negativo?`)){
+          throw new Error('Cancelado por usuario');
+        }
+      }
+      const newStock = tipo==='entrada' ? p.stock+qty : p.stock-qty;
+      tx.update(prodRef, {stock:newStock});
+      tx.set(movRef, {prodId, tipo, canal, qty, price:finalPrice, date:serverTimestamp(), notes});
+    });
+    toast('Movimiento registrado');
+    closeModal('mov');
+  }catch(e){
+    if(e.message !== 'Cancelado por usuario') toast('Error: '+e.message,'error');
+    console.error(e);
   }
-  state.movements.push({id:nextId(state.movements), prodId, tipo, canal, qty, price:price||(tipo==='entrada'?p.cost:p.price), date:new Date().toISOString(), notes});
-  if(tipo==='entrada') p.stock += qty; else p.stock -= qty;
-  closeModal('mov');
-  save();
+  btn.disabled=false; btn.textContent='Registrar';
 }
 
-// ============ RENDER ============
-function stockStatus(p){
-  if(p.stock<=0) return {pill:'out', label:'Sin stock'};
-  if(p.stock<=p.min) return {pill:'low', label:'Bajo'};
-  return {pill:'ok', label:'OK'};
+async function seedDemo(){
+  if(state.products.length>0){
+    if(!confirm('Ya hay productos. ¿Agregar los de demo igual? (se duplicarán SKUs)')) return;
+  }
+  const btn = document.getElementById('seedBtn');
+  btn.disabled=true; btn.textContent='Cargando demo…';
+  try{
+    const demo = [
+      {sku:"REM-001", name:"Remera blanca básica", cat:"Remeras", cost:450, price:1200, stock:32, min:10},
+      {sku:"REM-002", name:"Remera negra estampada", cat:"Remeras", cost:520, price:1500, stock:8, min:10},
+      {sku:"PAN-001", name:"Pantalón jean clásico", cat:"Pantalones", cost:1200, price:3200, stock:18, min:5},
+      {sku:"PAN-002", name:"Pantalón cargo verde", cat:"Pantalones", cost:1400, price:3800, stock:3, min:5},
+      {sku:"BUZ-001", name:"Buzo canguro gris", cat:"Buzos", cost:1800, price:4500, stock:15, min:8},
+      {sku:"ACC-001", name:"Gorra trucker negra", cat:"Accesorios", cost:380, price:1100, stock:0, min:5},
+      {sku:"ACC-002", name:"Mochila urbana", cat:"Accesorios", cost:2200, price:5500, stock:7, min:3},
+      {sku:"CAL-001", name:"Zapatillas running 42", cat:"Calzado", cost:3500, price:8900, stock:12, min:4}
+    ];
+    const batch = writeBatch(db);
+    demo.forEach(p=>batch.set(doc(productsCol), {...p, createdAt: serverTimestamp()}));
+    await batch.commit();
+    toast('Datos demo cargados ✓');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='🌱 Cargar datos demo';
 }
-function fmt(n){return '$'+Number(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}
-function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('es-AR')+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}
-function daysAgo(n){return new Date(Date.now()-n*86400000)}
+
+function exportJSON(){
+  const data = JSON.stringify({products:state.products, movements:state.movements},null,2);
+  const blob = new Blob([data],{type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='mybusiness-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+}
 
 function refreshCatList(){
   const cats=[...new Set(state.products.map(p=>p.cat))];
@@ -424,17 +490,21 @@ function refreshCatList(){
 
 function renderDashboard(){
   document.getElementById('kpi-prods').textContent = state.products.length;
-  const valor = state.products.reduce((s,p)=>s+p.cost*p.stock,0);
+  const valor = state.products.reduce((s,p)=>s+(p.cost||0)*(p.stock||0),0);
   document.getElementById('kpi-valor').textContent = fmt(valor);
   const cutoff = daysAgo(30);
-  const ventas30 = state.movements.filter(m=>m.tipo==='salida' && new Date(m.date)>=cutoff);
+  const ventas30 = state.movements.filter(m=>{
+    if(m.tipo!=='salida') return false;
+    if(!m.date) return true;
+    const d = m.date.toDate ? m.date.toDate() : new Date(m.date);
+    return d>=cutoff;
+  });
   const totalVentas = ventas30.reduce((s,m)=>s+m.qty*m.price,0);
   document.getElementById('kpi-ventas').textContent = fmt(totalVentas);
   document.getElementById('kpi-ventas-cnt').textContent = ventas30.length+' transacciones';
   const lows = state.products.filter(p=>p.stock<=p.min);
   document.getElementById('kpi-low').textContent = lows.length;
 
-  // alert summary
   const alertSum = document.getElementById('alertSummary');
   if(lows.length>0){
     alertSum.innerHTML = `<div class="alert-banner">⚠️ Tenés <strong>${lows.length}</strong> producto${lows.length>1?'s':''} con stock bajo o agotado. <a style="color:var(--warning);text-decoration:underline;cursor:pointer" onclick="document.querySelector('[data-view=alertas]').click()">Ver detalle</a></div>`;
@@ -442,28 +512,23 @@ function renderDashboard(){
   const badge = document.getElementById('alertBadge');
   if(lows.length>0){badge.style.display='inline-block';badge.textContent=lows.length} else badge.style.display='none';
 
-  // top productos
   const top = {};
   ventas30.forEach(m=>{top[m.prodId]=(top[m.prodId]||0)+m.qty});
   const topArr = Object.entries(top).map(([id,q])=>({p:state.products.find(x=>x.id==id), q})).filter(x=>x.p).sort((a,b)=>b.q-a.q).slice(0,5);
   const max = Math.max(...topArr.map(x=>x.q),1);
-  const tpc = document.getElementById('topProductsChart');
-  tpc.innerHTML = topArr.length?topArr.map(x=>`
+  document.getElementById('topProductsChart').innerHTML = topArr.length?topArr.map(x=>`
     <div class="bar-row"><div class="name">${x.p.name}</div><div class="bar"><div style="width:${x.q/max*100}%"></div></div><div class="val">${x.q} u.</div></div>
   `).join(''):'<div class="empty">Sin ventas en los últimos 30 días</div>';
 
-  // canal
   const ch={fisica:0,online:0};
   ventas30.forEach(m=>{if(ch[m.canal]!==undefined)ch[m.canal]+=m.qty*m.price});
   const chMax = Math.max(ch.fisica,ch.online,1);
-  const chc = document.getElementById('channelChart');
-  chc.innerHTML = (ch.fisica||ch.online)?`
+  document.getElementById('channelChart').innerHTML = (ch.fisica||ch.online)?`
     <div class="bar-row"><div class="name">🏪 Tienda física</div><div class="bar"><div style="width:${ch.fisica/chMax*100}%;background:var(--success)"></div></div><div class="val">${fmt(ch.fisica)}</div></div>
     <div class="bar-row"><div class="name">🌐 Online</div><div class="bar"><div style="width:${ch.online/chMax*100}%;background:var(--accent)"></div></div><div class="val">${fmt(ch.online)}</div></div>
   `:'<div class="empty">Sin ventas en los últimos 30 días</div>';
 
-  // recientes
-  const recent = [...state.movements].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const recent = state.movements.slice(0,5);
   document.getElementById('recentMovs').innerHTML = recent.map(m=>{
     const p = state.products.find(x=>x.id===m.prodId);
     return `<tr><td>${fmtDate(m.date)}</td><td>${p?p.name:'(eliminado)'}</td><td><span class="pill ${m.tipo==='entrada'?'in':'out'}">${m.tipo}</span></td><td><span class="pill ${m.canal==='online'?'online':'fisica'}">${m.canal}</span></td><td>${m.qty}</td><td>${fmt(m.qty*m.price)}</td></tr>`;
@@ -483,7 +548,7 @@ function renderCatalogo(){
       if(s!==fstock) return false;
     }
     return true;
-  });
+  }).sort((a,b)=>a.sku.localeCompare(b.sku));
   document.getElementById('prodTable').innerHTML = filtered.map(p=>{
     const s = stockStatus(p);
     return `<tr>
@@ -496,18 +561,17 @@ function renderCatalogo(){
       <td>${p.min}</td>
       <td><span class="pill ${s.pill}">${s.label}</span></td>
       <td style="text-align:right;white-space:nowrap">
-        <button class="btn small secondary" onclick="openModal('prod',${p.id})">Editar</button>
-        <button class="btn small danger" onclick="deleteProduct(${p.id})">×</button>
+        <button class="btn small secondary" onclick="openModal('prod','${p.id}')">Editar</button>
+        <button class="btn small danger" onclick="deleteProduct('${p.id}')">×</button>
       </td>
     </tr>`;
-  }).join('') || '<tr><td colspan="9" class="empty">Sin productos</td></tr>';
+  }).join('') || '<tr><td colspan="9" class="empty">Sin productos. Usá "Cargar datos demo" o "Nuevo producto".</td></tr>';
 }
 
 function renderMovimientos(){
   const ft = document.getElementById('filterTipo').value;
   const fc = document.getElementById('filterCanal').value;
-  const filtered = state.movements.filter(m=>(!ft||m.tipo===ft) && (!fc||m.canal===fc))
-    .sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const filtered = state.movements.filter(m=>(!ft||m.tipo===ft) && (!fc||m.canal===fc));
   document.getElementById('movTable').innerHTML = filtered.map(m=>{
     const p = state.products.find(x=>x.id===m.prodId);
     return `<tr>
@@ -535,7 +599,7 @@ function renderAlertas(){
       <td>${p.min}</td>
       <td>${sugerido} u.</td>
       <td><span class="pill ${s.pill}">${s.label}</span></td>
-      <td style="text-align:right"><button class="btn small" onclick="openMovForProduct(${p.id})">+ Reponer</button></td>
+      <td style="text-align:right"><button class="btn small" onclick="openMovForProduct('${p.id}')">+ Reponer</button></td>
     </tr>`;
   }).join('') || '<tr><td colspan="7" class="empty">🎉 Todo el stock está OK</td></tr>';
 }
@@ -559,7 +623,6 @@ function renderReportes(){
   document.getElementById('r-margen-pct').textContent = ingresos?((margen/ingresos*100).toFixed(1)+'%'):'0%';
   document.getElementById('r-unidades').textContent = unidades;
 
-  // Detalle por producto
   const det = state.products.map(p=>{
     const vs = ventas.filter(m=>m.prodId===p.id);
     const u = vs.reduce((s,m)=>s+m.qty,0);
@@ -572,14 +635,12 @@ function renderReportes(){
     <tr><td>${x.p.name}</td><td>${x.u}</td><td>${fmt(x.ing)}</td><td>${fmt(x.co)}</td><td><strong>${fmt(x.mg)}</strong></td><td>${x.pct.toFixed(1)}%</td></tr>
   `).join('') || '<tr><td colspan="6" class="empty">Sin ventas registradas</td></tr>';
 
-  // margen chart
   const top5 = det.slice(0,5);
   const max = Math.max(...top5.map(x=>x.mg),1);
   document.getElementById('marginChart').innerHTML = top5.length?top5.map(x=>`
     <div class="bar-row"><div class="name">${x.p.name}</div><div class="bar"><div style="width:${x.mg/max*100}%;background:var(--success)"></div></div><div class="val">${fmt(x.mg)}</div></div>
   `).join(''):'<div class="empty">Sin datos</div>';
 
-  // categoria
   const byCat = {};
   state.products.forEach(p=>{byCat[p.cat]=(byCat[p.cat]||0)+p.cost*p.stock});
   const catArr = Object.entries(byCat).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
@@ -590,32 +651,22 @@ function renderReportes(){
 }
 
 function render(){
-  renderDashboard();
-  renderCatalogo();
-  renderMovimientos();
-  renderAlertas();
-  renderReportes();
+  renderDashboard(); renderCatalogo(); renderMovimientos(); renderAlertas(); renderReportes();
 }
 
-// ============ FILTROS ============
 ['searchProd','filterCat','filterStock'].forEach(id=>document.getElementById(id).addEventListener('input',renderCatalogo));
 ['filterTipo','filterCanal'].forEach(id=>document.getElementById(id).addEventListener('change',renderMovimientos));
 
-// ============ EXPORT / RESET ============
-document.getElementById('exportBtn').onclick = ()=>{
-  const data = JSON.stringify(state,null,2);
-  const blob = new Blob([data],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'tienda-stock-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
-};
-document.getElementById('resetBtn').onclick = ()=>{
-  if(confirm('¿Reiniciar con datos de demo? Se perderán los cambios actuales.')){seedDemo()}
-};
+// Exponer funciones para los onclick inline
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.saveProduct = saveProduct;
+window.deleteProduct = deleteProduct;
+window.saveMovement = saveMovement;
+window.openMovForProduct = openMovForProduct;
 
-// ============ INIT ============
-seedDemo();
+document.getElementById('seedBtn').addEventListener('click', seedDemo);
+document.getElementById('exportBtn').addEventListener('click', exportJSON);
 </script>
 </body>
 </html>
