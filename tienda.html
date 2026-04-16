@@ -135,6 +135,9 @@
   /* Footer */
   footer{margin-top:80px;padding:32px 24px;border-top:1px solid var(--border);text-align:center;color:var(--muted);font-size:13px}
   footer a{color:var(--accent);font-weight:500}
+  footer .credit{margin-top:24px;font-size:10px;opacity:.7;letter-spacing:.4px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+  footer .credit .brand-logos{display:inline-flex;align-items:center;gap:10px}
+  footer .credit svg.brand{display:block;height:32px;width:auto}
 
   /* Loading */
   .skeleton{padding:80px 24px;text-align:center;color:var(--muted)}
@@ -182,6 +185,35 @@
 <footer>
   <p>MyBusiness · Tienda mixta (física + online)</p>
   <p style="margin-top:8px">¿Tenés una consulta? <a href="#" id="footerWhatsApp">Escribinos por WhatsApp</a></p>
+  <p class="credit">
+    <span>Designed and developed by</span>
+    <span class="brand-logos">
+      <svg class="brand" viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fernando Marquez">
+        <rect width="220" height="70" rx="10" fill="#0a1628"/>
+        <circle cx="22" cy="26" r="2.2" fill="#e2e8f0"/>
+        <circle cx="22" cy="46" r="2.2" fill="#e2e8f0"/>
+        <text x="32" y="44" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="22" font-weight="600" fill="#4dabe8">&lt;/</text>
+        <text x="68" y="32" font-family="-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif" font-size="16" font-weight="700" fill="#ffffff">Fernando</text>
+        <text x="68" y="50" font-family="-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif" font-size="14" font-weight="500" fill="#4dabe8">Marquez</text>
+        <line x1="68" y1="56" x2="200" y2="56" stroke="#4dabe8" stroke-width="0.8"/>
+      </svg>
+      <svg class="brand" viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Isbeis Technology">
+        <rect width="220" height="70" rx="10" fill="#0a1628"/>
+        <g stroke="#2fc4a0" stroke-width="1.6" stroke-linecap="round" fill="#2fc4a0">
+          <line x1="20" y1="18" x2="55" y2="52"/>
+          <line x1="55" y1="18" x2="20" y2="52"/>
+          <circle cx="20" cy="18" r="3.2"/>
+          <circle cx="55" cy="18" r="3.2"/>
+          <circle cx="20" cy="52" r="3.2"/>
+          <circle cx="55" cy="52" r="3.2"/>
+          <circle cx="37.5" cy="35" r="4.5"/>
+        </g>
+        <text x="74" y="34" font-family="-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif" font-size="17" font-weight="800" fill="#ffffff" letter-spacing="2.5">ISBEIS</text>
+        <text x="74" y="50" font-family="-apple-system,BlinkMacSystemFont,Inter,Arial,sans-serif" font-size="8.5" font-weight="500" fill="#2fc4a0" letter-spacing="3">TECHNOLOGY</text>
+        <line x1="74" y1="56" x2="200" y2="56" stroke="#2fc4a0" stroke-width="0.8"/>
+      </svg>
+    </span>
+  </p>
 </footer>
 
 <!-- Modal: Detalle producto -->
@@ -254,7 +286,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getFirestore, collection, doc, addDoc, onSnapshot, serverTimestamp, query, orderBy, getDoc
+  getFirestore, collection, doc, addDoc, getDocs, updateDoc, onSnapshot, serverTimestamp, query, orderBy, where, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // La configuración de la tienda se administra desde el backoffice (sección "Configuración")
@@ -283,6 +315,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const productsCol = collection(db, "products");
 const ordersCol = collection(db, "orders");
+const customersCol = collection(db, "customers");
 const configRef = doc(db, "config", "store");
 
 // Cargar config desde Firestore y aplicar al DOM
@@ -502,8 +535,31 @@ async function placeOrder(){
   try{
     const total = state.cart.reduce((s,i)=>s+i.qty*i.price,0);
     const items = state.cart.map(i=>({prodId:i.id, sku:i.sku, name:i.name, qty:i.qty, price:i.price, subtotal:i.qty*i.price}));
+
+    // Auto-register or update customer by phone
+    let customerId = null;
+    try{
+      const custQ = query(customersCol, where('phone','==',phone));
+      const custSnap = await getDocs(custQ);
+      if(custSnap.empty){
+        const custRef = await addDoc(customersCol, {name, phone, address, orderCount:1, totalSpent:total, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+        customerId = custRef.id;
+      }else{
+        const existing = custSnap.docs[0];
+        customerId = existing.id;
+        const prev = existing.data();
+        await updateDoc(doc(db,'customers',customerId), {
+          name, address,
+          orderCount: (prev.orderCount||0)+1,
+          totalSpent: (prev.totalSpent||0)+total,
+          updatedAt: serverTimestamp()
+        });
+      }
+    }catch(ce){ console.warn('Customer auto-register failed:', ce); }
+
     const orderData = {
       customer: {name, phone, address},
+      customerId: customerId,
       items, total, notes,
       status: 'pendiente',
       channel: 'online',
