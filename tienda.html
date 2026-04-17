@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MyBusiness — Tienda</title>
+<title>Isbeis Imports — Tienda</title>
 <style>
   :root{
     --bg:#fbfbfd; --fg:#1d1d1f; --muted:#6e6e73; --accent:#0071e3; --accent-hover:#0077ed;
@@ -202,10 +202,23 @@
 
 <header>
   <div class="nav">
-    <a href="#" class="logo">MyBusiness<span class="logo-dot">.</span></a>
+    <a href="#" class="logo" style="display:flex;align-items:center">
+      <svg viewBox="0 0 520 200" style="height:36px;width:auto" xmlns="http://www.w3.org/2000/svg">
+        <rect width="520" height="200" rx="16" fill="#0f1729"/>
+        <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+        <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+        <circle cx="152" cy="82" r="16" fill="#c0392b"/>
+        <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
+        <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
+        <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
+      </svg>
+    </a>
     <div class="nav-links">
       <a href="#productos">Productos</a>
       <a href="index.html" title="Backoffice">Admin</a>
+      <span id="authLink"></span>
       <button class="cart-btn" id="cartBtn">&#x1f6cd;&#xfe0f; <span class="cart-count" id="cartCount" style="display:none">0</span></button>
     </div>
   </div>
@@ -339,6 +352,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import {
   getFirestore, collection, doc, addDoc, getDocs, updateDoc, onSnapshot, serverTimestamp, query, orderBy, where, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // La configuración de la tienda se administra desde el backoffice (sección "Configuración")
 // y se guarda en Firestore en /config/store
@@ -364,6 +378,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const usersCol = collection(db, "users");
 const productsCol = collection(db, "products");
 const ordersCol = collection(db, "orders");
 const customersCol = collection(db, "customers");
@@ -380,8 +396,9 @@ onSnapshot(configRef, snap => {
 });
 
 function applyStoreConfig(){
-  document.title = STORE_CONFIG.storeName + " — Tienda";
-  document.querySelector('.logo').firstChild.textContent = STORE_CONFIG.storeName;
+  document.title = "Isbeis Imports — Tienda";
+  // Logo is now an SVG, no text update needed
+  // document.querySelector('.logo').firstChild.textContent = STORE_CONFIG.storeName;
   document.querySelector('.hero h1').textContent = STORE_CONFIG.heroTitle;
   document.querySelector('.hero p').textContent = STORE_CONFIG.heroSubtitle;
   document.querySelector('footer p').textContent = STORE_CONFIG.footerText;
@@ -406,7 +423,9 @@ const state = {
   modalProd: null,
   modalGalleryIdx: 0,
   sliderIdx: 0,
-  sliderTimer: null
+  sliderTimer: null,
+  currentUser: null,
+  userProfile: null
 };
 
 function fmt(n){ return (STORE_CONFIG.currency||'$')+Number(n||0).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
@@ -418,6 +437,69 @@ function toast(msg, type=''){
   setTimeout(()=>el.remove(),2800);
 }
 function saveCart(){ localStorage.setItem('mb_cart', JSON.stringify(state.cart)); updateCartUI(); }
+
+// ===== AUTH =====
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    state.currentUser = user;
+    try{
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if(userDoc.exists()){
+        state.userProfile = userDoc.data();
+      } else {
+        state.userProfile = { name: user.displayName || '', email: user.email || '' };
+      }
+    }catch(e){
+      console.warn('Error fetching user profile:', e);
+      state.userProfile = { name: user.displayName || '', email: user.email || '' };
+    }
+    updateAuthUI();
+    prefillCheckout();
+  } else {
+    state.currentUser = null;
+    state.userProfile = null;
+    updateAuthUI();
+  }
+});
+
+function updateAuthUI(){
+  const el = document.getElementById('authLink');
+  if(!el) return;
+  if(state.currentUser && state.userProfile){
+    const displayName = state.userProfile.name || state.currentUser.displayName || state.currentUser.email || 'Usuario';
+    el.innerHTML = '<span style="font-size:14px;opacity:.85;display:inline-flex;align-items:center;gap:8px">' +
+      '<span>' + displayName + '</span>' +
+      '<a href="#" id="logoutLink" style="color:var(--danger);font-size:13px">Cerrar sesi\u00f3n</a>' +
+    '</span>';
+    const logoutLink = document.getElementById('logoutLink');
+    if(logoutLink){
+      logoutLink.onclick = async (e) => {
+        e.preventDefault();
+        await signOut(auth);
+        toast('Sesi\u00f3n cerrada');
+      };
+    }
+  } else {
+    el.innerHTML = '<a href="login.html" style="font-size:14px;opacity:.85">Iniciar sesi\u00f3n</a>';
+  }
+}
+
+function requireAuth(){
+  if(state.currentUser) return true;
+  toast('Inici\u00e1 sesi\u00f3n para comprar', 'error');
+  setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+  return false;
+}
+
+function prefillCheckout(){
+  if(!state.userProfile) return;
+  const nameInput = document.getElementById('ck-name');
+  const phoneInput = document.getElementById('ck-phone');
+  const addressInput = document.getElementById('ck-address');
+  if(nameInput && !nameInput.value && state.userProfile.name) nameInput.value = state.userProfile.name;
+  if(phoneInput && !phoneInput.value && state.userProfile.phone) phoneInput.value = state.userProfile.phone;
+  if(addressInput && !addressInput.value && state.userProfile.address) addressInput.value = state.userProfile.address;
+}
 
 // ===== Helper: get product images array =====
 function getProductImages(p){
@@ -754,6 +836,7 @@ function modalQtyDelta(d){
   inp.value = val;
 }
 function modalAddToCart(){
+  if(!requireAuth()) return;
   const p = state.modalProd; if(!p) return;
   const qty = Math.max(1, parseInt(document.getElementById('modalQty').value)||1);
   if(qty>p.stock){ toast('No hay tanto stock disponible','error'); return; }
@@ -836,9 +919,11 @@ function closeCart(){
 // ===== CHECKOUT =====
 function goToCheckout(){
   if(state.cart.length===0) return;
+  if(!requireAuth()) return;
   document.getElementById('cartView').style.display='none';
   document.getElementById('checkoutView').classList.add('show');
   document.getElementById('cartTitle').textContent='Finalizar pedido';
+  prefillCheckout();
   renderCheckoutSummary();
 }
 function backToCart(){
@@ -853,6 +938,7 @@ function renderCheckoutSummary(){
 }
 
 async function placeOrder(){
+  if(!requireAuth()) return;
   const name = document.getElementById('ck-name').value.trim();
   const phone = document.getElementById('ck-phone').value.trim();
   const address = document.getElementById('ck-address').value.trim();
@@ -942,6 +1028,7 @@ window.backToCart = backToCart;
 window.placeOrder = placeOrder;
 window.closeCart = closeCart;
 window.resetCart = resetCart;
+window.requireAuth = requireAuth;
 
 updateCartUI();
 </script>

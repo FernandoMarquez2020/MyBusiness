@@ -287,13 +287,29 @@
 </head>
 <body>
 
+<div id="authOverlay" style="position:fixed;inset:0;background:#0a0a0a;z-index:10000;display:flex;align-items:center;justify-content:center;font-family:'VT323',monospace;font-size:24px;color:#33ff33;text-shadow:0 0 6px rgba(51,255,51,.4)">
+  VERIFICANDO ACCESO...
+</div>
+
 <!-- SYNC BAR -->
 <div class="sync-bar" id="syncBar"></div>
 
 <!-- HEADER -->
 <div class="pos-header">
   <div>
-    <div class="store" id="storeName">MYBUSINESS</div>
+    <div class="store" id="storeName">
+  <svg viewBox="0 0 520 200" style="height:32px;width:auto;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">
+    <rect width="520" height="200" rx="16" fill="#0f1729"/>
+    <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
+    <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+    <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+    <circle cx="152" cy="82" r="16" fill="#c0392b"/>
+    <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
+    <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
+    <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
+  </svg>
+</div>
     <div class="status" id="connStatus">CONECTANDO...</div>
   </div>
   <div class="meta">
@@ -357,6 +373,9 @@
       <a class="pos-btn sec" href="index.html" style="text-decoration:none;text-align:center">
         ← VOLVER AL BACK
       </a>
+      <button class="pos-btn sec" id="btnSalir" style="border-color:var(--red);color:var(--red)">
+        SALIR
+      </button>
     </div>
   </div>
 </div>
@@ -439,6 +458,7 @@ import {
   getFirestore, collection, doc, addDoc, updateDoc, getDocs, getDoc,
   onSnapshot, runTransaction, serverTimestamp, query, orderBy, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
@@ -457,6 +477,45 @@ const ordersCol = collection(db, "orders");
 const movementsCol = collection(db, "movements");
 const customersCol = collection(db, "customers");
 const configRef = doc(db, "config", "store");
+const auth = getAuth(app);
+
+// ===== AUTH CHECK =====
+const authReady = new Promise((resolve) => {
+  onAuthStateChanged(auth, async (user) => {
+    const overlay = document.getElementById('authOverlay');
+    if (!user) {
+      window.location.href = 'login.html';
+      return;
+    }
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (!userDoc.exists()) {
+        window.location.href = 'login.html';
+        return;
+      }
+      const profile = userDoc.data();
+      if (profile.role !== 'cajero' && profile.role !== 'admin_it') {
+        if(overlay) overlay.textContent = 'ACCESO DENEGADO \u2014 Solo personal de caja';
+        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+        return;
+      }
+      // Authorized — show username in header
+      document.getElementById('connStatus').textContent = `CAJERO: ${profile.name || user.email}`;
+      if(overlay) overlay.remove();
+      resolve(profile);
+    } catch(e) {
+      console.error(e);
+      if(overlay) overlay.textContent = 'ERROR DE AUTENTICACI\u00d3N';
+      setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+    }
+  });
+});
+
+// SALIR button
+document.getElementById('btnSalir').addEventListener('click', async () => {
+  await signOut(auth);
+  window.location.href = 'login.html';
+});
 
 let products = [];
 let config = {};
@@ -522,7 +581,8 @@ onSnapshot(productsCol, snap => {
 onSnapshot(configRef, snap => {
   if(snap.exists()){
     config = snap.data();
-    document.getElementById('storeName').textContent = (config.storeName||'MYBUSINESS').toUpperCase();
+    // storeName is now an SVG logo — do not overwrite
+    // document.getElementById('storeName').textContent = (config.storeName||'MYBUSINESS').toUpperCase();
   }
 });
 

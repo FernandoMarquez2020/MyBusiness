@@ -128,6 +128,18 @@
   .btn-group .btn{border-radius:0}
   .btn-group .btn:first-child{border-radius:8px 0 0 8px}
   .btn-group .btn:last-child{border-radius:0 8px 8px 0}
+  .auth-loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;z-index:9999;color:var(--text);font-size:16px}
+  .auth-loading .loader{width:32px;height:32px;border-width:3px}
+  .user-info{padding:12px 14px;background:var(--panel-2);border-radius:8px;margin-bottom:8px;font-size:13px}
+  .user-info .user-name{font-weight:600;color:var(--text);margin-bottom:4px}
+  .user-info .user-role{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600}
+  .role-admin_it{background:rgba(139,92,246,.2);color:#a78bfa}
+  .role-manager{background:rgba(59,130,246,.2);color:#60a5fa}
+  .role-contable{background:rgba(245,158,11,.2);color:#fbbf24}
+  .role-cajero{background:rgba(34,197,94,.2);color:#4ade80}
+  .role-cliente{background:rgba(148,163,184,.2);color:#94a3b8}
+  .btn-logout{background:transparent;border:1px solid var(--danger);color:var(--danger);text-align:center;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;width:100%;margin-top:auto;transition:all .15s}
+  .btn-logout:hover{background:var(--danger);color:#fff}
   @media(max-width:768px){
     body{flex-direction:column}
     aside{width:100%;height:auto;position:relative;padding:12px;flex-wrap:wrap;flex-direction:row}
@@ -139,8 +151,25 @@
 </head>
 <body>
 
-<aside>
-  <h1>📦 <span>StockPro</span></h1>
+<div class="auth-loading" id="authLoading">
+  <div class="loader"></div>
+  <div>Verificando autenticación...</div>
+</div>
+
+<aside id="sidebarEl" style="display:none">
+  <div style="padding:4px 0 8px">
+    <svg viewBox="0 0 520 200" style="width:100%;max-width:210px;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">
+      <rect width="520" height="200" rx="16" fill="#0f1729"/>
+      <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
+      <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+      <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+      <circle cx="152" cy="82" r="16" fill="#c0392b"/>
+      <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
+      <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
+      <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
+    </svg>
+  </div>
   <div id="fbStatus" class="status-pill">Conectando a Firestore…</div>
   <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
   <button class="nav-btn" data-view="catalogo">🏷️ Catálogo</button>
@@ -155,14 +184,17 @@
   <button class="nav-btn" data-view="alertas">⚠️ Alertas <span class="badge warn" id="alertBadge" style="display:none">0</span></button>
   <button class="nav-btn" data-view="reportes">📈 Reportes</button>
   <button class="nav-btn" data-view="config">⚙️ Configuración</button>
+  <button class="nav-btn" data-view="usuarios" id="navUsuarios" style="display:none">👥 Usuarios</button>
   <div class="nav-divider"></div>
+  <div id="userInfoSidebar"></div>
   <a class="nav-btn" id="storeLink" href="tienda.html" target="_blank">🛍️ Ver tienda pública</a>
   <a class="nav-btn" href="caja.html" target="_blank" style="background:linear-gradient(135deg,#1a1a2e,#0d0d0d);color:#33ff33;border:1px solid #33ff33;">💰 Abrir caja POS</a>
   <button class="nav-btn" id="seedBtn">🌱 Cargar datos demo</button>
   <button class="nav-btn" id="exportBtn">⬇️ Exportar JSON</button>
+  <button class="btn-logout" id="logoutBtn" style="display:none" onclick="window._doLogout()">🚪 Cerrar sesión</button>
 </aside>
 
-<main>
+<main id="mainEl" style="display:none">
 
 <!-- DASHBOARD -->
 <section id="view-dashboard" class="view">
@@ -452,6 +484,63 @@
   </div>
 </section>
 
+<!-- USUARIOS -->
+<section id="view-usuarios" class="view" style="display:none">
+  <div class="header">
+    <div><h2>Gestión de usuarios</h2><div class="sub">Administración de roles y accesos del sistema</div></div>
+    <button class="btn" onclick="openUsuarioModal()">+ Nuevo usuario</button>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <input id="searchUsuario" placeholder="🔍 Buscar por nombre o email..." />
+      <select id="filterUsuarioRol">
+        <option value="">Todos los roles</option>
+        <option value="admin_it">Admin IT</option>
+        <option value="manager">Manager</option>
+        <option value="contable">Contable</option>
+        <option value="cajero">Cajero</option>
+        <option value="cliente">Cliente</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Fecha registro</th><th></th></tr></thead>
+      <tbody id="usuarioTable"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Modal: Usuario -->
+<div class="modal-bg" id="modal-usuario">
+  <div class="modal">
+    <h3 id="usuarioModalTitle">Nuevo usuario</h3>
+    <div class="form-grid">
+      <div style="grid-column:1/-1"><label>Nombre</label><input id="u-name" placeholder="Nombre completo" /></div>
+      <div><label>Email</label><input id="u-email" type="email" placeholder="usuario@email.com" /></div>
+      <div>
+        <label>Rol</label>
+        <select id="u-role">
+          <option value="cliente">Cliente</option>
+          <option value="cajero">Cajero</option>
+          <option value="manager">Manager</option>
+          <option value="contable">Contable</option>
+          <option value="admin_it">Admin IT</option>
+        </select>
+      </div>
+      <div>
+        <label>Estado</label>
+        <select id="u-active">
+          <option value="true">Activo</option>
+          <option value="false">Inactivo</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn secondary" onclick="closeModal('usuario')">Cancelar</button>
+      <button class="btn" id="saveUsuarioBtn" onclick="saveUsuario()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <footer class="app-credit">
   <span>Designed and developed by</span>
   <span class="brand-logos">
@@ -713,6 +802,7 @@ import {
 import {
   getStorage, ref as storageRef, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
@@ -736,13 +826,90 @@ const slidesCol = collection(db, "slides");
 const offerCategoriesCol = collection(db, "offerCategories");
 const configRef = doc(db, "config", "store");
 const storage = getStorage(app);
+const auth = getAuth(app);
+const usersCol = collection(db, "users");
 
 const state = {
   products: [], movements: [], orders: [], customers: [], suppliers: [], purchaseOrders: [], slides: [],
   offerCategories: [],
   config: {}, editingProdId: null, editingOrderId: null, editingSupplierId: null,
   compraItems: [], editingCompraId: null, editingSlideId: null, editingOfferCatId: null,
-  prodImages: [] // temp array for product images in modal
+  prodImages: [], // temp array for product images in modal
+  currentUser: null, currentUserProfile: null, usuarios: []
+};
+
+// ===== AUTH STATE CHECK =====
+const ALLOWED_BACKOFFICE_ROLES = ['manager','contable','admin_it'];
+const CONTABLE_VIEWS = ['dashboard','ventas','reportes','config'];
+
+function applyRoleRestrictions(role){
+  // Show usuarios button only for admin_it
+  const navUsuarios = document.getElementById('navUsuarios');
+  if(role === 'admin_it') navUsuarios.style.display = '';
+  else navUsuarios.style.display = 'none';
+
+  // Contable: hide all sidebar buttons except allowed views
+  if(role === 'contable'){
+    document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
+      if(!CONTABLE_VIEWS.includes(btn.dataset.view)){
+        btn.style.display = 'none';
+      }
+    });
+  }
+}
+
+function showUserInfo(profile){
+  const el = document.getElementById('userInfoSidebar');
+  const roleLbl = (profile.role||'').replace('_',' ');
+  el.innerHTML = '<div class="user-info"><div class="user-name">'+(profile.name||profile.email||'Usuario')+'</div><span class="user-role role-'+(profile.role||'cliente')+'">'+roleLbl+'</span></div>';
+}
+
+onAuthStateChanged(auth, async (user) => {
+  const loadingEl = document.getElementById('authLoading');
+  const sidebarEl = document.getElementById('sidebarEl');
+  const mainEl = document.getElementById('mainEl');
+
+  if(!user){
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try{
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    let profile = userDoc.exists() ? userDoc.data() : {};
+    const role = profile.role || '';
+
+    if(role === 'cajero'){ window.location.href = 'caja.html'; return; }
+    if(role === 'cliente'){ window.location.href = 'tienda.html'; return; }
+    if(!ALLOWED_BACKOFFICE_ROLES.includes(role)){
+      window.location.href = 'login.html';
+      return;
+    }
+
+    state.currentUser = user;
+    state.currentUserProfile = profile;
+
+    // Show UI
+    loadingEl.style.display = 'none';
+    sidebarEl.style.display = '';
+    mainEl.style.display = '';
+
+    showUserInfo(profile);
+    applyRoleRestrictions(role);
+
+    // Show logout button
+    document.getElementById('logoutBtn').style.display = '';
+
+  }catch(e){
+    console.error('Auth check error:', e);
+    loadingEl.innerHTML = '<div style="color:var(--danger)">Error verificando permisos. <a href="login.html" style="color:var(--primary)">Volver al login</a></div>';
+  }
+});
+
+window._doLogout = async function(){
+  if(!confirm('¿Cerrar sesión?')) return;
+  try{ await signOut(auth); window.location.href = 'login.html'; }
+  catch(e){ toast('Error cerrando sesión: '+e.message,'error'); }
 };
 
 // ===== IMAGE UPLOAD =====
@@ -869,6 +1036,10 @@ onSnapshot(query(offerCategoriesCol, orderBy('order','asc')),
 onSnapshot(configRef, snap => {
   if(snap.exists()){ state.config = snap.data(); fillConfigForm(); render(); }
 });
+onSnapshot(usersCol,
+  snap => { state.usuarios = snap.docs.map(d => ({id:d.id, ...d.data()})); render(); },
+  err => console.error('Users listener error:', err)
+);
 
 // ===== NAV =====
 document.querySelectorAll('.nav-btn[data-view]').forEach(btn=>{
@@ -2189,8 +2360,85 @@ function renderReportes(){
   ).join(''):'<div class="empty">Sin productos</div>';
 }
 
+// ===== USUARIOS =====
+function rolePill(role){
+  const labels = {admin_it:'Admin IT',manager:'Manager',contable:'Contable',cajero:'Cajero',cliente:'Cliente'};
+  return '<span class="pill role-'+(role||'cliente')+'">'+(labels[role]||role||'—')+'</span>';
+}
+
+function renderUsuarios(){
+  const search = (document.getElementById('searchUsuario')?.value||'').toLowerCase();
+  const frol = document.getElementById('filterUsuarioRol')?.value||'';
+  const filtered = state.usuarios.filter(u=>{
+    if(search && !(u.name||'').toLowerCase().includes(search) && !(u.email||'').toLowerCase().includes(search)) return false;
+    if(frol && u.role!==frol) return false;
+    return true;
+  });
+  const tb = document.getElementById('usuarioTable');
+  if(!tb) return;
+  tb.innerHTML = filtered.map(u=>{
+    const activeLabel = u.active===false ? '<span class="pill out">Inactivo</span>' : '<span class="pill ok">Activo</span>';
+    return '<tr>'+
+      '<td><strong>'+(u.name||'—')+'</strong></td>'+
+      '<td>'+(u.email||'—')+'</td>'+
+      '<td>'+rolePill(u.role)+'</td>'+
+      '<td>'+activeLabel+'</td>'+
+      '<td>'+fmtDateShort(u.createdAt)+'</td>'+
+      '<td style="text-align:right;white-space:nowrap">'+
+        '<button class="btn small secondary" onclick="openUsuarioModal(\''+u.id+'\')">Editar</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('') || '<tr><td colspan="6" class="empty">Sin usuarios registrados</td></tr>';
+}
+
+state.editingUsuarioId = null;
+
+function openUsuarioModal(id){
+  id = id || null;
+  state.editingUsuarioId = id;
+  if(id){
+    const u = state.usuarios.find(x=>x.id===id);
+    document.getElementById('usuarioModalTitle').textContent = 'Editar usuario';
+    document.getElementById('u-name').value = u.name||'';
+    document.getElementById('u-email').value = u.email||'';
+    document.getElementById('u-email').disabled = true; // can't change email
+    document.getElementById('u-role').value = u.role||'cliente';
+    document.getElementById('u-active').value = u.active===false?'false':'true';
+  }else{
+    document.getElementById('usuarioModalTitle').textContent = 'Nuevo usuario (pre-registro)';
+    document.getElementById('u-name').value = '';
+    document.getElementById('u-email').value = '';
+    document.getElementById('u-email').disabled = false;
+    document.getElementById('u-role').value = 'cliente';
+    document.getElementById('u-active').value = 'true';
+  }
+  document.getElementById('modal-usuario').classList.add('show');
+}
+
+async function saveUsuario(){
+  const name = document.getElementById('u-name').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const role = document.getElementById('u-role').value;
+  const active = document.getElementById('u-active').value !== 'false';
+  if(!name || !email){ alert('Nombre y email son obligatorios'); return; }
+  const btn = document.getElementById('saveUsuarioBtn');
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span> Guardando...';
+  try{
+    if(state.editingUsuarioId){
+      await updateDoc(doc(db,'users',state.editingUsuarioId), {name, role, active});
+      toast('Usuario actualizado');
+    }else{
+      // Pre-register: create doc with email as reference (uid will be set on first login)
+      await addDoc(usersCol, {name, email, role, active, createdAt:serverTimestamp()});
+      toast('Usuario pre-registrado');
+    }
+    closeModal('usuario');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='Guardar';
+}
+
 function render(){
-  renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderVentas(); renderClientes(); renderProveedores(); renderCompras(); renderSlider(); renderOfertas(); renderAlertas(); renderReportes();
+  renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderVentas(); renderClientes(); renderProveedores(); renderCompras(); renderSlider(); renderOfertas(); renderAlertas(); renderReportes(); renderUsuarios();
 }
 
 ['searchProd','filterCat','filterStock'].forEach(id=>document.getElementById(id).addEventListener('input',renderCatalogo));
@@ -2199,6 +2447,8 @@ document.getElementById('filterOrderStatus').addEventListener('change',renderPed
 document.getElementById('searchClient').addEventListener('input',renderClientes);
 document.getElementById('filterCompraStatus').addEventListener('change',renderCompras);
 ['ventaDateFrom','ventaDateTo','ventaChannel','ventaStatus'].forEach(id=>document.getElementById(id).addEventListener('change',renderVentas));
+if(document.getElementById('searchUsuario')) document.getElementById('searchUsuario').addEventListener('input',renderUsuarios);
+if(document.getElementById('filterUsuarioRol')) document.getElementById('filterUsuarioRol').addEventListener('change',renderUsuarios);
 
 // Expose for inline onclick
 window.openModal = openModal;
@@ -2236,6 +2486,8 @@ window.openOfferCatModal = openOfferCatModal;
 window.saveOfferCategory = saveOfferCategory;
 window.deleteOfferCategory = deleteOfferCategory;
 window.openVentaModal = openVentaModal;
+window.openUsuarioModal = openUsuarioModal;
+window.saveUsuario = saveUsuario;
 
 document.getElementById('seedBtn').addEventListener('click', seedDemo);
 document.getElementById('exportBtn').addEventListener('click', exportJSON);

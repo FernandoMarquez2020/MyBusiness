@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Isbeis Imports - Iniciar sesion</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 2.5rem 2rem 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,.4);
+    }
+
+    .logo-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .logo-wrap svg { width: 260px; height: auto; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #334155;
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: .75rem 0;
+      font-size: .95rem;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      position: relative;
+      transition: color .2s;
+    }
+    .tab-btn.active { color: #ffffff; }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 10%;
+      width: 80%;
+      height: 2px;
+      background: #c0392b;
+      border-radius: 2px;
+    }
+
+    /* Form elements */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 500;
+      color: #94a3b8;
+      margin-bottom: .35rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: .7rem .85rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: #c0392b; }
+
+    .btn-primary {
+      width: 100%;
+      padding: .75rem;
+      background: #c0392b;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: .5rem;
+    }
+    .btn-primary:hover { background: #a93226; }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-google {
+      width: 100%;
+      padding: .7rem;
+      background: #fff;
+      color: #333;
+      border: none;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      margin-top: .75rem;
+      transition: background .2s;
+    }
+    .btn-google:hover { background: #f1f1f1; }
+    .btn-google svg { width: 20px; height: 20px; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin: 1rem 0;
+      color: #475569;
+      font-size: .8rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #334155;
+    }
+
+    .link-forgot {
+      display: block;
+      text-align: right;
+      font-size: .8rem;
+      color: #c0392b;
+      text-decoration: none;
+      margin-top: .25rem;
+      cursor: pointer;
+    }
+    .link-forgot:hover { text-decoration: underline; }
+
+    /* Messages */
+    .msg {
+      padding: .65rem .85rem;
+      border-radius: 8px;
+      font-size: .85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .msg.error { display: block; background: #3b1219; color: #fca5a5; border: 1px solid #7f1d1d; }
+    .msg.success { display: block; background: #0f2918; color: #86efac; border: 1px solid #14532d; }
+    .msg.info { display: block; background: #172554; color: #93c5fd; border: 1px solid #1e3a5f; }
+
+    .hidden { display: none !important; }
+
+    /* Seed section */
+    .seed-section {
+      margin-top: 2rem;
+      text-align: center;
+    }
+    .btn-seed {
+      background: none;
+      border: 1px dashed #475569;
+      color: #64748b;
+      padding: .5rem 1.25rem;
+      border-radius: 8px;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-seed:hover { border-color: #c0392b; color: #c0392b; }
+    .seed-log {
+      margin-top: .75rem;
+      font-size: .75rem;
+      color: #94a3b8;
+      max-height: 200px;
+      overflow-y: auto;
+      text-align: left;
+      background: #0f172a;
+      border-radius: 8px;
+      padding: .75rem;
+      display: none;
+    }
+    .seed-log.visible { display: block; }
+    .seed-log p { margin-bottom: .25rem; }
+
+    /* Welcome overlay */
+    .welcome-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .welcome-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 2.5rem 3rem;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,.5);
+    }
+    .welcome-box h2 { font-size: 1.5rem; margin-bottom: .5rem; }
+    .welcome-box p { color: #94a3b8; font-size: .95rem; margin-bottom: 1.25rem; }
+    .welcome-box .role-badge {
+      display: inline-block;
+      padding: .3rem .9rem;
+      border-radius: 20px;
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.5rem 1.25rem 1.25rem; }
+      .logo-wrap svg { width: 200px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="logo-wrap">
+      <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="520" height="200" rx="16" fill="#0f1729"/>
+        <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+        <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+        <circle cx="152" cy="82" r="16" fill="#c0392b"/>
+        <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
+        <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
+        <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
+      </svg>
+    </div>
+
+    <div id="msgBox" class="msg"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="login">Iniciar sesion</button>
+      <button class="tab-btn" data-tab="register">Registrarse</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Correo electronico</label>
+        <input type="email" id="loginEmail" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Contrasena</label>
+        <input type="password" id="loginPassword" placeholder="Tu contrasena" required autocomplete="current-password">
+      </div>
+      <a class="link-forgot" id="forgotLink">Olvide mi contrasena</a>
+      <button type="submit" class="btn-primary" id="loginBtn">Iniciar sesion</button>
+      <div class="divider">o</div>
+      <button type="button" class="btn-google" id="googleLoginBtn">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Iniciar con Google
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" class="hidden">
+      <div class="form-group">
+        <label for="regName">Nombre completo</label>
+        <input type="text" id="regName" placeholder="Tu nombre" required autocomplete="name">
+      </div>
+      <div class="form-group">
+        <label for="regEmail">Correo electronico</label>
+        <input type="email" id="regEmail" placeholder="tu@correo.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label for="regPassword">Contrasena</label>
+        <input type="password" id="regPassword" placeholder="Minimo 6 caracteres" required autocomplete="new-password">
+      </div>
+      <div class="form-group">
+        <label for="regConfirm">Confirmar contrasena</label>
+        <input type="password" id="regConfirm" placeholder="Repite tu contrasena" required autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn-primary" id="regBtn">Registrarse</button>
+      <div class="divider">o</div>
+      <button type="button" class="btn-google" id="googleRegBtn">
+        <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Registrarse con Google
+      </button>
+    </form>
+  </div>
+
+  <!-- Seed Section -->
+  <div class="seed-section">
+    <button class="btn-seed" id="seedBtn">&#127793; Crear usuarios demo</button>
+    <div class="seed-log" id="seedLog"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
+      authDomain: "mybusiness-ee7a4.firebaseapp.com",
+      projectId: "mybusiness-ee7a4",
+      storageBucket: "mybusiness-ee7a4.firebasestorage.app",
+      messagingSenderId: "1094706581573",
+      appId: "1:1094706581573:web:8129a8d26c6ba195ea532c",
+      measurementId: "G-BC7JLJ1KBC"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // --- DOM refs ---
+    const msgBox = document.getElementById('msgBox');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+
+    // --- Helpers ---
+    function showMsg(text, type = 'error') {
+      msgBox.textContent = text;
+      msgBox.className = 'msg ' + type;
+    }
+    function clearMsg() { msgBox.className = 'msg'; msgBox.textContent = ''; }
+
+    function translateError(code) {
+      const map = {
+        'auth/invalid-email': 'El correo electronico no es valido.',
+        'auth/user-disabled': 'Esta cuenta ha sido deshabilitada.',
+        'auth/user-not-found': 'No existe una cuenta con ese correo.',
+        'auth/wrong-password': 'Contrasena incorrecta.',
+        'auth/invalid-credential': 'Credenciales incorrectas. Verifica tu correo y contrasena.',
+        'auth/email-already-in-use': 'Ya existe una cuenta con ese correo electronico.',
+        'auth/weak-password': 'La contrasena debe tener al menos 6 caracteres.',
+        'auth/too-many-requests': 'Demasiados intentos. Intenta de nuevo mas tarde.',
+        'auth/popup-closed-by-user': 'Se cerro la ventana de Google antes de completar el inicio de sesion.',
+        'auth/network-request-failed': 'Error de red. Verifica tu conexion a internet.',
+        'auth/missing-password': 'Debes ingresar una contrasena.',
+      };
+      return map[code] || 'Ha ocurrido un error. Intenta de nuevo.';
+    }
+
+    const roleLabels = {
+      cliente: 'Cliente',
+      cajero: 'Cajero',
+      manager: 'Manager',
+      contable: 'Contable',
+      admin_it: 'Administrador IT'
+    };
+
+    const roleColors = {
+      cliente: '#2563eb',
+      cajero: '#059669',
+      manager: '#d97706',
+      contable: '#7c3aed',
+      admin_it: '#c0392b'
+    };
+
+    function roleRedirect(role) {
+      switch (role) {
+        case 'cliente': return 'tienda.html';
+        case 'cajero': return 'caja.html';
+        case 'manager':
+        case 'contable':
+        case 'admin_it':
+        default:
+          return 'index.html';
+      }
+    }
+
+    async function getUserProfile(uid) {
+      const snap = await getDoc(doc(db, 'users', uid));
+      return snap.exists() ? snap.data() : null;
+    }
+
+    async function createUserProfile(uid, data) {
+      await setDoc(doc(db, 'users', uid), {
+        nombre: data.nombre || '',
+        email: data.email || '',
+        rol: data.rol || 'cliente',
+        creadoEn: serverTimestamp()
+      });
+    }
+
+    function showWelcomeAndRedirect(profile) {
+      const role = profile.rol || 'cliente';
+      const overlay = document.createElement('div');
+      overlay.className = 'welcome-overlay';
+      overlay.innerHTML = `
+        <div class="welcome-box">
+          <h2>Bienvenido, ${profile.nombre || 'Usuario'}</h2>
+          <p>Has iniciado sesion correctamente</p>
+          <span class="role-badge" style="background:${roleColors[role] || '#334155'}; color:#fff;">${roleLabels[role] || role}</span>
+          <p style="font-size:.8rem; color:#64748b; margin-top:.5rem;">Redirigiendo...</p>
+        </div>`;
+      document.body.appendChild(overlay);
+      setTimeout(() => { window.location.href = roleRedirect(role); }, 2000);
+    }
+
+    async function handleAuthSuccess(user) {
+      let profile = await getUserProfile(user.uid);
+      if (!profile) {
+        await createUserProfile(user.uid, {
+          nombre: user.displayName || '',
+          email: user.email || '',
+          rol: 'cliente'
+        });
+        profile = { nombre: user.displayName || '', email: user.email, rol: 'cliente' };
+      }
+      showWelcomeAndRedirect(profile);
+    }
+
+    // --- Auto-redirect if already logged in ---
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        let profile = await getUserProfile(user.uid);
+        if (profile) {
+          window.location.href = roleRedirect(profile.rol);
+        }
+      }
+    });
+
+    // --- Tabs ---
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        clearMsg();
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (btn.dataset.tab === 'login') {
+          loginForm.classList.remove('hidden');
+          registerForm.classList.add('hidden');
+        } else {
+          loginForm.classList.add('hidden');
+          registerForm.classList.remove('hidden');
+        }
+      });
+    });
+
+    // --- Login ---
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMsg();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.textContent = 'Ingresando...';
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        await handleAuthSuccess(cred.user);
+      } catch (err) {
+        showMsg(translateError(err.code));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Iniciar sesion';
+      }
+    });
+
+    // --- Register ---
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearMsg();
+      const nombre = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const confirm = document.getElementById('regConfirm').value;
+
+      if (password !== confirm) {
+        showMsg('Las contrasenas no coinciden.');
+        return;
+      }
+      if (password.length < 6) {
+        showMsg('La contrasena debe tener al menos 6 caracteres.');
+        return;
+      }
+
+      const btn = document.getElementById('regBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creando cuenta...';
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await createUserProfile(cred.user.uid, { nombre, email, rol: 'cliente' });
+        await handleAuthSuccess(cred.user);
+      } catch (err) {
+        showMsg(translateError(err.code));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Registrarse';
+      }
+    });
+
+    // --- Google Sign-In ---
+    document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+      clearMsg();
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        await handleAuthSuccess(result.user);
+      } catch (err) {
+        showMsg(translateError(err.code));
+      }
+    });
+
+    document.getElementById('googleRegBtn').addEventListener('click', async () => {
+      clearMsg();
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        await handleAuthSuccess(result.user);
+      } catch (err) {
+        showMsg(translateError(err.code));
+      }
+    });
+
+    // --- Forgot Password ---
+    document.getElementById('forgotLink').addEventListener('click', async () => {
+      clearMsg();
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) {
+        showMsg('Ingresa tu correo electronico primero.', 'info');
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showMsg('Se ha enviado un enlace de recuperacion a ' + email + '.', 'success');
+      } catch (err) {
+        showMsg(translateError(err.code));
+      }
+    });
+
+    // --- Seed Demo Users ---
+    const seedBtn = document.getElementById('seedBtn');
+    const seedLog = document.getElementById('seedLog');
+
+    const demoUsers = [
+      { email: 'cliente1@isbeis.com', pass: 'Test1234!', rol: 'cliente', nombre: 'Maria Gonzalez' },
+      { email: 'cliente2@isbeis.com', pass: 'Test1234!', rol: 'cliente', nombre: 'Juan Perez' },
+      { email: 'cajero1@isbeis.com', pass: 'Test1234!', rol: 'cajero', nombre: 'Ana Lopez' },
+      { email: 'cajero2@isbeis.com', pass: 'Test1234!', rol: 'cajero', nombre: 'Pedro Martinez' },
+      { email: 'manager1@isbeis.com', pass: 'Test1234!', rol: 'manager', nombre: 'Laura Rodriguez' },
+      { email: 'contable1@isbeis.com', pass: 'Test1234!', rol: 'contable', nombre: 'Carlos Silva' },
+      { email: 'admin@isbeis.com', pass: 'Test1234!', rol: 'admin_it', nombre: 'Fernando Marquez' },
+    ];
+
+    function logSeed(text, color = '#94a3b8') {
+      const p = document.createElement('p');
+      p.style.color = color;
+      p.textContent = text;
+      seedLog.appendChild(p);
+      seedLog.scrollTop = seedLog.scrollHeight;
+    }
+
+    seedBtn.addEventListener('click', async () => {
+      seedBtn.disabled = true;
+      seedBtn.textContent = 'Creando...';
+      seedLog.innerHTML = '';
+      seedLog.classList.add('visible');
+      logSeed('Iniciando creacion de usuarios demo...');
+
+      for (const u of demoUsers) {
+        try {
+          logSeed(`Creando ${u.nombre} (${u.email})...`);
+          const cred = await createUserWithEmailAndPassword(auth, u.email, u.pass);
+          await createUserProfile(cred.user.uid, { nombre: u.nombre, email: u.email, rol: u.rol });
+          await signOut(auth);
+          logSeed(`  ${u.nombre} creado con rol "${u.rol}"`, '#86efac');
+        } catch (err) {
+          if (err.code === 'auth/email-already-in-use') {
+            logSeed(`  ${u.email} ya existe, omitiendo.`, '#fcd34d');
+          } else {
+            logSeed(`  Error: ${err.message}`, '#fca5a5');
+          }
+        }
+      }
+
+      logSeed('Iniciando sesion como admin@isbeis.com...');
+      try {
+        await signInWithEmailAndPassword(auth, 'admin@isbeis.com', 'Test1234!');
+        logSeed('Sesion iniciada como admin. Redirigiendo...', '#86efac');
+        const profile = await getUserProfile(auth.currentUser.uid);
+        if (profile) {
+          showWelcomeAndRedirect(profile);
+        }
+      } catch (err) {
+        logSeed('No se pudo iniciar sesion como admin: ' + err.message, '#fca5a5');
+      }
+
+      seedBtn.disabled = false;
+      seedBtn.textContent = '\u{1F331} Crear usuarios demo';
+    });
+  </script>
+</body>
+</html>
