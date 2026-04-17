@@ -183,6 +183,43 @@
   .qty-modal-box .qty-actions .no{border-color:var(--red);color:var(--red)}
   .qty-modal-box .qty-actions .no:hover{background:rgba(255,51,51,.1)}
 
+  /* Payment modal */
+  .pay-modal{
+    position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:150;
+    display:none;align-items:center;justify-content:center;
+  }
+  .pay-modal.show{display:flex}
+  .pay-modal-box{
+    background:var(--bg);border:2px solid var(--amber);padding:28px;
+    min-width:400px;max-width:460px;width:100%;
+    box-shadow:0 0 60px rgba(255,176,0,.15);
+  }
+  .pay-modal-box h3{color:var(--amber);font-size:24px;margin-bottom:6px;text-align:center;letter-spacing:2px}
+  .pay-modal-box .pay-total{color:var(--green-bright);font-size:36px;text-align:center;margin:12px 0 20px;text-shadow:0 0 12px rgba(51,255,51,.5)}
+  .pay-modal-box .pay-summary{color:var(--green-dim);font-size:15px;text-align:center;margin-bottom:16px}
+  .pay-methods{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .pay-method{
+    padding:14px 16px;border:2px solid var(--border);cursor:pointer;
+    font-family:'VT323',monospace;font-size:20px;color:var(--green);
+    display:flex;align-items:center;gap:12px;transition:all .15s;
+    background:transparent;text-align:left;
+  }
+  .pay-method:hover{border-color:var(--green);background:rgba(51,255,51,.05)}
+  .pay-method.selected{border-color:var(--green-bright);background:rgba(51,255,51,.1);color:var(--green-bright)}
+  .pay-method .pay-icon{font-size:24px;min-width:30px;text-align:center}
+  .pay-method .pay-label{flex:1}
+  .pay-method .pay-key{color:var(--green-dim);font-size:14px}
+  .pay-confirm-row{display:flex;gap:10px;justify-content:center;margin-top:8px}
+  .pay-confirm-row button{
+    font-family:'VT323',monospace;font-size:20px;padding:12px 28px;
+    border:2px solid;cursor:pointer;background:transparent;letter-spacing:1px;
+  }
+  .pay-confirm-row .pay-ok{border-color:var(--green);color:var(--green)}
+  .pay-confirm-row .pay-ok:hover{background:rgba(51,255,51,.1);box-shadow:0 0 16px rgba(51,255,51,.15)}
+  .pay-confirm-row .pay-ok:disabled{opacity:.3;cursor:not-allowed}
+  .pay-confirm-row .pay-cancel{border-color:var(--red);color:var(--red)}
+  .pay-confirm-row .pay-cancel:hover{background:rgba(255,51,51,.06)}
+
   /* Receipt overlay */
   .receipt-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;
@@ -200,6 +237,19 @@
     border:1px solid var(--green);color:var(--green);background:transparent;cursor:pointer;
   }
   .receipt .receipt-actions button:hover{background:rgba(51,255,51,.1)}
+
+  /* Sync indicator */
+  .sync-bar{
+    position:fixed;top:0;left:0;right:0;height:3px;z-index:9997;
+    background:transparent;transition:background .3s;
+  }
+  .sync-bar.syncing{
+    background:linear-gradient(90deg,transparent,var(--amber),transparent);
+    animation:syncPulse 1.5s infinite;
+  }
+  .sync-bar.ok{background:var(--green);transition:background .2s}
+  .sync-bar.error{background:var(--red)}
+  @keyframes syncPulse{0%,100%{opacity:.3}50%{opacity:1}}
 
   /* Toast */
   .crt-toast{
@@ -227,7 +277,7 @@
   }
 
   @media print{
-    body::before,body::after,.pos-header,.pos-left,.pos-right,.keys-bar,.receipt-actions,.qty-modal{display:none!important}
+    body::before,body::after,.pos-header,.pos-left,.pos-right,.keys-bar,.receipt-actions,.qty-modal,.pay-modal,.sync-bar{display:none!important}
     .pos-body,.pos-center{display:block!important;overflow:visible!important}
     body{background:#fff;color:#000;text-shadow:none;animation:none}
     .ticket-row,.ticket-cols,.totals-bar{color:#000!important;border-color:#ccc!important}
@@ -236,6 +286,9 @@
 </style>
 </head>
 <body>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="syncBar"></div>
 
 <!-- HEADER -->
 <div class="pos-header">
@@ -317,6 +370,7 @@
   <span><kbd>ESC</kbd> Cerrar</span>
   <span><kbd>↑↓</kbd> Navegar</span>
   <span><kbd>ENTER</kbd> Agregar</span>
+  <span><kbd>1-4</kbd> Forma de pago</span>
 </div>
 
 <!-- QTY MODAL -->
@@ -333,12 +387,47 @@
   </div>
 </div>
 
+<!-- PAYMENT MODAL -->
+<div class="pay-modal" id="payModal">
+  <div class="pay-modal-box">
+    <h3>▸ FORMA DE PAGO</h3>
+    <div class="pay-total" id="payTotal">$0</div>
+    <div class="pay-summary" id="paySummary"></div>
+    <div class="pay-methods" id="payMethods">
+      <button class="pay-method" data-method="efectivo" onclick="selectPayMethod('efectivo')">
+        <span class="pay-icon">💵</span>
+        <span class="pay-label">CONTADO EFECTIVO</span>
+        <span class="pay-key"><kbd>1</kbd></span>
+      </button>
+      <button class="pay-method" data-method="tarjeta" onclick="selectPayMethod('tarjeta')">
+        <span class="pay-icon">💳</span>
+        <span class="pay-label">TARJETA</span>
+        <span class="pay-key"><kbd>2</kbd></span>
+      </button>
+      <button class="pay-method" data-method="remito" onclick="selectPayMethod('remito')">
+        <span class="pay-icon">📄</span>
+        <span class="pay-label">REMITO / CUENTA CORRIENTE</span>
+        <span class="pay-key"><kbd>3</kbd></span>
+      </button>
+      <button class="pay-method" data-method="otro" onclick="selectPayMethod('otro')">
+        <span class="pay-icon">🔄</span>
+        <span class="pay-label">OTRO</span>
+        <span class="pay-key"><kbd>4</kbd></span>
+      </button>
+    </div>
+    <div class="pay-confirm-row">
+      <button class="pay-cancel" onclick="closePayModal()">CANCELAR [ESC]</button>
+      <button class="pay-ok" id="btnConfirmPay" disabled onclick="confirmPayment()">▸ CONFIRMAR VENTA [ENTER]</button>
+    </div>
+  </div>
+</div>
+
 <!-- RECEIPT OVERLAY -->
 <div class="receipt-overlay" id="receiptOverlay">
   <div class="receipt">
     <pre id="receiptText"></pre>
     <div class="receipt-actions">
-      <button onclick="printReceipt()">IMPRIMIR</button>
+      <button onclick="printReceipt()">🖨️ IMPRIMIR</button>
       <button onclick="closeReceipt()">CERRAR [ESC]</button>
     </div>
   </div>
@@ -375,6 +464,7 @@ let ticket = [];
 let ticketCounter = 1;
 let selectedResultIdx = -1;
 let pendingProduct = null;
+let selectedPayMethod = null;
 
 // ===== CLOCK =====
 function updateClock(){
@@ -402,6 +492,22 @@ function genTicketId(){
          String(d.getMinutes()).padStart(2,'0') + '-' +
          String(ticketCounter++).padStart(3,'0');
 }
+
+const PAYMENT_LABELS = {
+  'efectivo': 'CONTADO EFECTIVO',
+  'tarjeta': 'TARJETA',
+  'remito': 'REMITO / CTA. CTE.',
+  'otro': 'OTRO'
+};
+
+// ===== SYNC BAR =====
+function setSyncing(){ document.getElementById('syncBar').className = 'sync-bar syncing'; }
+function setSyncOk(){
+  const bar = document.getElementById('syncBar');
+  bar.className = 'sync-bar ok';
+  setTimeout(()=>{ bar.className = 'sync-bar'; }, 2000);
+}
+function setSyncError(){ document.getElementById('syncBar').className = 'sync-bar error'; }
 
 // ===== FIRESTORE =====
 onSnapshot(productsCol, snap => {
@@ -490,16 +596,29 @@ searchInput.addEventListener('keydown', e => {
 });
 
 document.addEventListener('keydown', e => {
+  // Don't capture if inside inputs (except designated shortcuts)
+  const payOpen = document.getElementById('payModal').classList.contains('show');
+  const qtyOpen = document.getElementById('qtyModal').classList.contains('show');
+  const receiptOpen = document.getElementById('receiptOverlay').classList.contains('show');
+
   if(e.key === 'F1'){ e.preventDefault(); searchInput.focus(); searchInput.select(); }
   if(e.key === 'F2'){ e.preventDefault(); cobrar(); }
   if(e.key === 'F3'){ e.preventDefault(); cancelTicket(); }
   if(e.key === 'F4'){ e.preventDefault(); nuevoTicket(); }
+
   if(e.key === 'Escape'){
-    if(document.getElementById('receiptOverlay').classList.contains('show')){
-      closeReceipt();
-    } else if(document.getElementById('qtyModal').classList.contains('show')){
-      closeQtyModal();
-    }
+    if(receiptOpen){ closeReceipt(); }
+    else if(payOpen){ closePayModal(); }
+    else if(qtyOpen){ closeQtyModal(); }
+  }
+
+  // Payment method shortcuts (1-4) when pay modal is open
+  if(payOpen && !qtyOpen && !receiptOpen){
+    if(e.key === '1'){ e.preventDefault(); selectPayMethod('efectivo'); }
+    if(e.key === '2'){ e.preventDefault(); selectPayMethod('tarjeta'); }
+    if(e.key === '3'){ e.preventDefault(); selectPayMethod('remito'); }
+    if(e.key === '4'){ e.preventDefault(); selectPayMethod('otro'); }
+    if(e.key === 'Enter' && selectedPayMethod){ e.preventDefault(); confirmPayment(); }
   }
 });
 
@@ -533,7 +652,6 @@ function confirmQty(){
   if(qty <= 0){ crtToast('CANTIDAD INVÁLIDA', true); return; }
   const existing = ticket.find(t=>t.prodId === pendingProduct.id);
   const currentQty = existing ? existing.qty : 0;
-  // Check against real-time stock
   const realProd = products.find(x=>x.id===pendingProduct.id);
   if(realProd && (currentQty + qty) > realProd.stock){
     crtToast(`STOCK INSUFICIENTE — hay ${realProd.stock}, pedís ${currentQty+qty}`, true);
@@ -601,119 +719,156 @@ function renderTicket(){
   document.getElementById('btnCobrar').disabled = false;
 }
 
-// ===== COBRAR =====
-async function cobrar(){
+// ===== COBRAR — Step 1: Open payment modal =====
+function cobrar(){
   if(ticket.length === 0) return;
+  selectedPayMethod = null;
   const total = ticket.reduce((s,i)=>s+i.subtotal, 0);
+  const units = ticket.reduce((s,i)=>s+i.qty, 0);
+
+  document.getElementById('payTotal').textContent = fmt(total);
+  document.getElementById('paySummary').textContent = `${units} artículo${units!==1?'s':''} · ${ticket.length} línea${ticket.length!==1?'s':''}`;
+
+  // Reset method selection
+  document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('btnConfirmPay').disabled = true;
+
+  document.getElementById('payModal').classList.add('show');
+}
+
+function selectPayMethod(method){
+  selectedPayMethod = method;
+  document.querySelectorAll('.pay-method').forEach(b=>{
+    b.classList.toggle('selected', b.dataset.method === method);
+  });
+  document.getElementById('btnConfirmPay').disabled = false;
+}
+
+function closePayModal(){
+  document.getElementById('payModal').classList.remove('show');
+  selectedPayMethod = null;
+  searchInput.focus();
+}
+
+// ===== COBRAR — Step 2: Confirm and process =====
+async function confirmPayment(){
+  if(!selectedPayMethod || ticket.length === 0) return;
+
+  const payMethod = selectedPayMethod;
+  const payLabel = PAYMENT_LABELS[payMethod] || payMethod.toUpperCase();
+
+  // Close payment modal immediately
+  document.getElementById('payModal').classList.remove('show');
+
+  // Capture all data BEFORE clearing
+  const saleItems = ticket.map(it=>({...it}));
+  const saleTotal = ticket.reduce((s,i)=>s+i.subtotal, 0);
   const custName = document.getElementById('custName').value.trim();
   const custPhone = document.getElementById('custPhone').value.trim();
   const custAddress = document.getElementById('custAddress').value.trim();
+  const ticketId = genTicketId();
 
-  document.getElementById('btnCobrar').disabled = true;
-  document.getElementById('btnCobrar').textContent = 'PROCESANDO...';
+  // ── SHOW RECEIPT INSTANTLY (optimistic) ──
+  showReceipt(saleItems, saleTotal, custName, custPhone, ticketId, payLabel);
+  crtToast('✔ VENTA REGISTRADA');
 
+  // Reset UI immediately — the cashier can start a new sale right away
+  ticket = [];
+  renderTicket();
+  document.getElementById('custName').value = '';
+  document.getElementById('custPhone').value = '';
+  document.getElementById('custAddress').value = '';
+  document.getElementById('custFound').textContent = '';
+
+  // ── SYNC TO FIRESTORE IN BACKGROUND ──
+  setSyncing();
   try {
-    // Atomic transaction: check stock, decrement, create movements, create order
-    const ticketId = genTicketId();
-
     await runTransaction(db, async (tx) => {
       // Read all products
-      const prodRefs = ticket.map(it => doc(db, 'products', it.prodId));
+      const prodRefs = saleItems.map(it => doc(db, 'products', it.prodId));
       const snaps = await Promise.all(prodRefs.map(r => tx.get(r)));
 
       // Validate stock
-      for(let i = 0; i < ticket.length; i++){
-        const it = ticket[i], sn = snaps[i];
+      for(let i = 0; i < saleItems.length; i++){
+        const it = saleItems[i], sn = snaps[i];
         if(!sn.exists()) throw new Error(`${it.sku} NO EXISTE`);
-        const cur = sn.data().stock;
-        if(cur < it.qty) throw new Error(`${it.sku}: STOCK INSUF. (hay ${cur}, se piden ${it.qty})`);
+        const curStock = sn.data().stock;
+        if(curStock < it.qty) throw new Error(`${it.sku}: STOCK INSUF. (hay ${curStock}, se piden ${it.qty})`);
       }
 
       // Decrement stock
-      for(let i = 0; i < ticket.length; i++){
-        tx.update(prodRefs[i], { stock: snaps[i].data().stock - ticket[i].qty });
+      for(let i = 0; i < saleItems.length; i++){
+        tx.update(prodRefs[i], { stock: snaps[i].data().stock - saleItems[i].qty });
       }
 
       // Create movements
-      for(const it of ticket){
+      for(const it of saleItems){
         const movRef = doc(movementsCol);
         tx.set(movRef, {
           prodId: it.prodId, tipo: 'salida', canal: 'fisica',
           qty: it.qty, price: it.price,
           date: serverTimestamp(),
-          notes: `Venta mostrador #${ticketId}${custName ? ' — ' + custName : ''}`
+          notes: `Venta mostrador #${ticketId} · ${payLabel}${custName ? ' — ' + custName : ''}`
         });
       }
 
       // Create order
-      let customerId = null;
-
-      // Auto-register customer if phone provided
-      if(custPhone){
-        try {
-          const custQ = query(customersCol, where('phone','==',custPhone));
-          const custSnap = await getDocs(custQ);
-          if(custSnap.empty){
-            const custRef = await addDoc(customersCol, {
-              name: custName||'Mostrador', phone: custPhone, address: custAddress,
-              orderCount:1, totalSpent:total,
-              createdAt:serverTimestamp(), updatedAt:serverTimestamp()
-            });
-            customerId = custRef.id;
-          } else {
-            const existing = custSnap.docs[0];
-            customerId = existing.id;
-            const prev = existing.data();
-            await updateDoc(doc(db,'customers',customerId), {
-              name: custName || prev.name, address: custAddress || prev.address,
-              orderCount: (prev.orderCount||0)+1,
-              totalSpent: (prev.totalSpent||0)+total,
-              updatedAt: serverTimestamp()
-            });
-          }
-        } catch(ce){ console.warn('Customer registration failed:', ce); }
-      }
-
       const orderRef = doc(ordersCol);
       tx.set(orderRef, {
         customer: { name: custName||'Mostrador', phone: custPhone||'', address: custAddress||'' },
-        customerId: customerId,
-        items: ticket.map(it=>({
+        customerId: null,
+        items: saleItems.map(it=>({
           prodId:it.prodId, sku:it.sku, name:it.name,
           qty:it.qty, price:it.price, subtotal:it.subtotal
         })),
-        total, notes: '',
+        total: saleTotal, notes: '',
         status: 'confirmado',
         channel: 'fisica',
+        payMethod: payMethod,
+        payMethodLabel: payLabel,
         createdAt: serverTimestamp(),
         confirmedAt: serverTimestamp(),
         ticketId: ticketId
       });
     });
 
-    // Show receipt
-    showReceipt(ticket, total, custName, custPhone, genTicketId());
-    crtToast('✔ VENTA REGISTRADA — STOCK ACTUALIZADO');
+    // Customer registration OUTSIDE the transaction (non-blocking)
+    if(custPhone){
+      try {
+        const custQ = query(customersCol, where('phone','==',custPhone));
+        const custSnap = await getDocs(custQ);
+        if(custSnap.empty){
+          await addDoc(customersCol, {
+            name: custName||'Mostrador', phone: custPhone, address: custAddress,
+            orderCount:1, totalSpent:saleTotal,
+            createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+          });
+        } else {
+          const existing = custSnap.docs[0];
+          const prev = existing.data();
+          await updateDoc(doc(db,'customers',existing.id), {
+            name: custName || prev.name, address: custAddress || prev.address,
+            orderCount: (prev.orderCount||0)+1,
+            totalSpent: (prev.totalSpent||0)+saleTotal,
+            updatedAt: serverTimestamp()
+          });
+        }
+      } catch(ce){ console.warn('Customer registration failed:', ce); }
+    }
 
-    // Reset
-    ticket = [];
-    renderTicket();
-    document.getElementById('custName').value = '';
-    document.getElementById('custPhone').value = '';
-    document.getElementById('custAddress').value = '';
-    document.getElementById('custFound').textContent = '';
+    setSyncOk();
 
   } catch(e){
-    crtToast('ERROR: ' + e.message, true);
-    console.error(e);
+    setSyncError();
+    crtToast('⚠ ERROR SYNC: ' + e.message + ' — Reintentar desde backoffice', true);
+    console.error('Background sync failed:', e);
+    // The receipt was already shown — the cashier sees the error in the sync bar
+    // They can retry or handle from the backoffice
   }
-
-  document.getElementById('btnCobrar').disabled = ticket.length===0;
-  document.getElementById('btnCobrar').textContent = '▸ COBRAR [F2]';
 }
 
 // ===== RECEIPT =====
-function showReceipt(items, total, custName, custPhone, tid){
+function showReceipt(items, total, custName, custPhone, tid, payLabel){
   const storeName = (config.storeName||'MyBusiness').toUpperCase();
   const now = new Date();
   const date = now.toLocaleDateString('es-AR');
@@ -743,7 +898,8 @@ function showReceipt(items, total, custName, custPhone, tid){
 
   r += dash + '\n';
   const totalStr = c + Number(total).toLocaleString('es-AR');
-  r += `\n  TOTAL:  ${totalStr}\n\n`;
+  r += `\n  TOTAL:  ${totalStr}\n`;
+  r += `  PAGO:   ${payLabel}\n\n`;
   r += line + '\n';
   r += centerText('¡GRACIAS POR SU COMPRA!', w) + '\n';
   r += centerText(config.footerText || '', w) + '\n';
@@ -798,6 +954,9 @@ window.removeItem = removeItem;
 window.confirmQty = confirmQty;
 window.closeQtyModal = closeQtyModal;
 window.cobrar = cobrar;
+window.selectPayMethod = selectPayMethod;
+window.closePayModal = closePayModal;
+window.confirmPayment = confirmPayment;
 window.cancelTicket = cancelTicket;
 window.nuevoTicket = nuevoTicket;
 window.closeReceipt = closeReceipt;

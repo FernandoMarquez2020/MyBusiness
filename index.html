@@ -70,7 +70,7 @@
   .modal-bg.show{display:flex}
   .modal{background:var(--panel);border-radius:12px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto}
   .modal h3{margin-bottom:18px;font-size:18px}
-  .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap}
   .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
   @media(max-width:900px){.chart-row{grid-template-columns:1fr}}
   .bar-chart{display:flex;flex-direction:column;gap:10px}
@@ -111,6 +111,23 @@
   .app-credit{margin-top:48px;padding-top:24px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--muted);opacity:.75;letter-spacing:.4px;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
   .app-credit .brand-logos{display:inline-flex;align-items:center;gap:10px}
   .app-credit svg.brand{display:block;height:32px;width:auto}
+  .offer-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+  .offer-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative}
+  .offer-card h4{font-size:15px;margin-bottom:6px}
+  .offer-card .offer-desc{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .offer-card .offer-meta{font-size:11px;color:var(--muted);margin-bottom:12px}
+  .offer-card .offer-actions{display:flex;gap:6px}
+  .images-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .images-list .img-item{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+  .images-list .img-item img{width:100%;height:100%;object-fit:cover}
+  .images-list .img-item .img-remove{position:absolute;top:2px;right:2px;background:var(--danger);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+  .multi-select-wrap{max-height:200px;overflow-y:auto;background:var(--panel-2);border:1px solid var(--border);border-radius:6px;padding:8px}
+  .multi-select-wrap label{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px;color:var(--text)}
+  .multi-select-wrap input[type=checkbox]{width:auto;margin:0}
+  .btn-group{display:inline-flex;border-radius:8px;overflow:hidden}
+  .btn-group .btn{border-radius:0}
+  .btn-group .btn:first-child{border-radius:8px 0 0 8px}
+  .btn-group .btn:last-child{border-radius:0 8px 8px 0}
   @media(max-width:768px){
     body{flex-direction:column}
     aside{width:100%;height:auto;position:relative;padding:12px;flex-wrap:wrap;flex-direction:row}
@@ -129,10 +146,12 @@
   <button class="nav-btn" data-view="catalogo">🏷️ Catálogo</button>
   <button class="nav-btn" data-view="movimientos">🔄 Movimientos</button>
   <button class="nav-btn" data-view="pedidos">🛒 Pedidos <span class="badge" id="orderBadge" style="display:none">0</span></button>
+  <button class="nav-btn" data-view="ventas">💰 Ventas</button>
   <button class="nav-btn" data-view="clientes">👤 Clientes</button>
   <button class="nav-btn" data-view="proveedores">🏭 Proveedores</button>
   <button class="nav-btn" data-view="compras">📋 Órdenes de compra</button>
   <button class="nav-btn" data-view="slider">🖼️ Slider ofertas</button>
+  <button class="nav-btn" data-view="ofertas">🏷️ Promociones / Ofertas</button>
   <button class="nav-btn" data-view="alertas">⚠️ Alertas <span class="badge warn" id="alertBadge" style="display:none">0</span></button>
   <button class="nav-btn" data-view="reportes">📈 Reportes</button>
   <button class="nav-btn" data-view="config">⚙️ Configuración</button>
@@ -245,6 +264,39 @@
   </div>
 </section>
 
+<!-- VENTAS -->
+<section id="view-ventas" class="view" style="display:none">
+  <div class="header">
+    <div><h2>Ventas</h2><div class="sub">Facturas y comprobantes de venta (pedidos confirmados y entregados)</div></div>
+  </div>
+  <div class="grid kpis" id="ventasKpis">
+    <div class="card kpi"><div class="label">Total ventas</div><div class="value" id="vkpi-total">$0</div></div>
+    <div class="card kpi"><div class="label">Cantidad de ventas</div><div class="value" id="vkpi-count">0</div></div>
+    <div class="card kpi"><div class="label">Ticket promedio</div><div class="value" id="vkpi-avg">$0</div></div>
+    <div class="card kpi"><div class="label">Ventas hoy</div><div class="value" id="vkpi-today">$0</div></div>
+  </div>
+  <div class="card">
+    <div class="toolbar">
+      <input id="ventaDateFrom" type="date" style="max-width:160px" />
+      <input id="ventaDateTo" type="date" style="max-width:160px" />
+      <select id="ventaChannel" style="max-width:160px">
+        <option value="">Todos los canales</option>
+        <option value="online">Online</option>
+        <option value="fisica">Tienda física</option>
+      </select>
+      <select id="ventaStatus" style="max-width:160px">
+        <option value="">Todos</option>
+        <option value="confirmado">Confirmados</option>
+        <option value="entregado">Entregados</option>
+      </select>
+    </div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Nro</th><th>Cliente</th><th>Canal</th><th>Items</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="ventaTable"></tbody>
+    </table>
+  </div>
+</section>
+
 <!-- CLIENTES -->
 <section id="view-clientes" class="view" style="display:none">
   <div class="header">
@@ -305,6 +357,17 @@
   </div>
   <div class="slide-cards" id="slideCards">
     <div class="empty" style="grid-column:1/-1">Sin slides configurados</div>
+  </div>
+</section>
+
+<!-- OFERTAS -->
+<section id="view-ofertas" class="view" style="display:none">
+  <div class="header">
+    <div><h2>Ofertas — Subcategorías</h2><div class="sub">Agrupa productos en subcategorías de ofertas para enlazar desde el slider</div></div>
+    <button class="btn" onclick="openOfferCatModal()">+ Nueva subcategoría</button>
+  </div>
+  <div class="offer-cards" id="offerCatCards">
+    <div class="empty" style="grid-column:1/-1">Sin subcategorías de ofertas</div>
   </div>
 </section>
 
@@ -423,26 +486,30 @@
 
 <!-- Modal: Producto -->
 <div class="modal-bg" id="modal-prod">
-  <div class="modal">
+  <div class="modal" style="max-width:620px">
     <h3 id="prodModalTitle">Nuevo producto</h3>
     <div class="form-grid">
       <div><label>SKU</label><input id="p-sku" placeholder="Ej: REM-001" /></div>
       <div><label>Categoría</label><input id="p-cat" placeholder="Ej: Remeras" list="catList" /><datalist id="catList"></datalist></div>
       <div style="grid-column:1/-1"><label>Nombre</label><input id="p-name" placeholder="Ej: Remera blanca M" /></div>
       <div style="grid-column:1/-1">
-        <label>Imagen — URL</label>
-        <input id="p-imageUrl" placeholder="https://..." oninput="updateImgPreview()" />
+        <label>Imágenes — URL</label>
+        <div style="display:flex;gap:8px">
+          <input id="p-imageUrl" placeholder="https://..." style="flex:1" />
+          <button class="btn small" type="button" onclick="addProductImageUrl()">+ Agregar</button>
+        </div>
       </div>
       <div style="grid-column:1/-1">
         <label>O subir desde dispositivo</label>
         <div class="file-upload-row">
           <input type="file" id="p-imageFile" accept="image/*" />
+          <button class="btn small" type="button" onclick="uploadAndAddProductImage()">Subir</button>
           <span class="upload-status" id="p-uploadStatus"></span>
         </div>
       </div>
-      <div style="grid-column:1/-1" id="imgPreviewWrap" style="display:none">
-        <label>Vista previa</label>
-        <img id="imgPreview" class="img-preview" style="width:120px;height:120px;border-radius:8px" />
+      <div style="grid-column:1/-1" id="imgListWrap">
+        <label>Imágenes del producto</label>
+        <div class="images-list" id="prodImagesList"></div>
       </div>
       <div><label>Costo ($)</label><input id="p-cost" type="number" step="0.01" min="0" /></div>
       <div><label>Precio venta ($)</label><input id="p-price" type="number" step="0.01" min="0" /></div>
@@ -481,6 +548,15 @@
     <h3 id="orderModalTitle">Pedido</h3>
     <div id="orderModalBody"></div>
     <div class="actions" id="orderModalActions"></div>
+  </div>
+</div>
+
+<!-- Modal: Detalle venta -->
+<div class="modal-bg" id="modal-venta">
+  <div class="modal" style="max-width:640px">
+    <h3 id="ventaModalTitle">Venta / Factura</h3>
+    <div id="ventaModalBody"></div>
+    <div class="actions" id="ventaModalActions"></div>
   </div>
 </div>
 
@@ -573,15 +649,15 @@
           <span class="upload-status" id="sl-uploadStatus"></span>
         </div>
       </div>
-      <div style="grid-column:1/-1" id="slPreviewWrap" style="display:none">
-        <img id="slPreview" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border)" />
+      <div style="grid-column:1/-1" id="slPreviewWrap">
+        <img id="slPreview" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:none" />
       </div>
       <div style="grid-column:1/-1"><label>Título (opcional)</label><input id="sl-title" placeholder="Ej: Liquidación de verano" /></div>
       <div style="grid-column:1/-1"><label>Subtítulo (opcional)</label><input id="sl-subtitle" placeholder="Ej: Hasta 40% OFF en remeras" /></div>
       <div>
         <label>Enlace a categoría</label>
         <select id="sl-linkCat"><option value="">— Todas —</option></select>
-        <div class="help-text">Al tocar el slide, filtra los productos por esta categoría</div>
+        <div class="help-text">Al tocar el slide, filtra los productos por esta categoría o subcategoría de oferta</div>
       </div>
       <div>
         <label>O enlace personalizado</label>
@@ -597,6 +673,30 @@
     <div class="actions">
       <button class="btn secondary" onclick="closeModal('slide')">Cancelar</button>
       <button class="btn" id="saveSlideBtn" onclick="saveSlide()">Guardar slide</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Subcategoría de oferta -->
+<div class="modal-bg" id="modal-offercat">
+  <div class="modal" style="max-width:600px">
+    <h3 id="offerCatModalTitle">Nueva subcategoría de oferta</h3>
+    <div class="form-grid">
+      <div style="grid-column:1/-1"><label>Nombre</label><input id="oc-name" placeholder="Ej: Ofertas de verano" /></div>
+      <div style="grid-column:1/-1"><label>Descripción</label><textarea id="oc-desc" rows="2" placeholder="Descripción breve de esta oferta"></textarea></div>
+      <div><label>Orden</label><input id="oc-order" type="number" min="1" value="1" /></div>
+      <div>
+        <label>Activo</label>
+        <select id="oc-active"><option value="true">Sí</option><option value="false">No</option></select>
+      </div>
+      <div style="grid-column:1/-1">
+        <label>Productos en esta oferta</label>
+        <div class="multi-select-wrap" id="oc-products-list"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn secondary" onclick="closeModal('offercat')">Cancelar</button>
+      <button class="btn" id="saveOfferCatBtn" onclick="saveOfferCategory()">Guardar</button>
     </div>
   </div>
 </div>
@@ -633,13 +733,16 @@ const customersCol = collection(db, "customers");
 const suppliersCol = collection(db, "suppliers");
 const purchaseOrdersCol = collection(db, "purchaseOrders");
 const slidesCol = collection(db, "slides");
+const offerCategoriesCol = collection(db, "offerCategories");
 const configRef = doc(db, "config", "store");
 const storage = getStorage(app);
 
 const state = {
   products: [], movements: [], orders: [], customers: [], suppliers: [], purchaseOrders: [], slides: [],
+  offerCategories: [],
   config: {}, editingProdId: null, editingOrderId: null, editingSupplierId: null,
-  compraItems: [], editingCompraId: null, editingSlideId: null
+  compraItems: [], editingCompraId: null, editingSlideId: null, editingOfferCatId: null,
+  prodImages: [] // temp array for product images in modal
 };
 
 // ===== IMAGE UPLOAD =====
@@ -679,16 +782,57 @@ function stockStatus(p){
   if(p.stock<=p.min) return {pill:'low', label:'Bajo'};
   return {pill:'ok', label:'OK'};
 }
+
+// Helper to get images array from product (backward compat)
+function getProductImages(p){
+  if(p.images && Array.isArray(p.images) && p.images.length>0) return p.images;
+  if(p.imageUrl) return [p.imageUrl];
+  return [];
+}
+function getFirstImage(p){
+  const imgs = getProductImages(p);
+  return imgs.length>0 ? imgs[0] : '';
+}
+
+// Robust thumb function - fixed onerror escaping issues
 function thumb(p){
-  return p.imageUrl
-    ? `<img class="img-thumb" src="${p.imageUrl}" alt="" onerror="this.outerHTML='<span class=\\'img-placeholder\\'>${(p.name||'?').charAt(0).toUpperCase()}</span>'">`
-    : `<span class="img-placeholder">${(p.name||'?').charAt(0).toUpperCase()}</span>`;
+  const imgUrl = getFirstImage(p);
+  const initial = (p.name||'?').charAt(0).toUpperCase();
+  if(imgUrl){
+    const safeUrl = imgUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const el = document.createElement('img');
+    el.className = 'img-thumb';
+    el.src = imgUrl;
+    el.alt = '';
+    el.onerror = function(){ this.outerHTML = '<span class="img-placeholder">'+initial+'</span>'; };
+    const wrapper = document.createElement('span');
+    wrapper.appendChild(el);
+    return wrapper.innerHTML;
+  }
+  return '<span class="img-placeholder">'+initial+'</span>';
+}
+
+// For use in innerHTML contexts where we need a safe string
+function thumbHtml(p){
+  const imgUrl = getFirstImage(p);
+  const initial = (p.name||'?').charAt(0).toUpperCase();
+  if(imgUrl){
+    const safeUrl = imgUrl.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<img class="img-thumb" src="'+safeUrl+'" alt="" onerror="this.outerHTML=\'<span class=\\\'img-placeholder\\\'>'+initial+'</span>\'">';
+  }
+  return '<span class="img-placeholder">'+initial+'</span>';
 }
 
 // ===== LISTENERS =====
 onSnapshot(productsCol,
   snap => {
-    state.products = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    state.products = snap.docs.map(d => {
+      const data = d.data();
+      // Backward compatibility: ensure images array
+      if(!data.images && data.imageUrl) data.images = [data.imageUrl];
+      if(!data.images) data.images = [];
+      return {id:d.id, ...data};
+    });
     setStatus('● Conectado a Firestore', 'online');
     render();
   },
@@ -718,6 +862,10 @@ onSnapshot(query(slidesCol, orderBy('order','asc')),
   snap => { state.slides = snap.docs.map(d => ({id:d.id, ...d.data()})); render(); },
   err => console.error(err)
 );
+onSnapshot(query(offerCategoriesCol, orderBy('order','asc')),
+  snap => { state.offerCategories = snap.docs.map(d => ({id:d.id, ...d.data()})); render(); },
+  err => console.error(err)
+);
 onSnapshot(configRef, snap => {
   if(snap.exists()){ state.config = snap.data(); fillConfigForm(); render(); }
 });
@@ -739,21 +887,26 @@ function openModal(name, id=null){
     if(id){
       const p = state.products.find(x=>x.id===id);
       document.getElementById('prodModalTitle').textContent = 'Editar producto';
-      ['sku','cat','name','cost','price','stock','min','imageUrl'].forEach(k=>{
+      ['sku','cat','name','cost','price','stock','min'].forEach(k=>{
         document.getElementById('p-'+k).value = p[k] ?? '';
       });
+      state.prodImages = [...getProductImages(p)];
     }else{
       document.getElementById('prodModalTitle').textContent = 'Nuevo producto';
-      ['sku','cat','name','cost','price','imageUrl'].forEach(k=>document.getElementById('p-'+k).value='');
+      ['sku','cat','name','cost','price'].forEach(k=>document.getElementById('p-'+k).value='');
       document.getElementById('p-stock').value=0;
       document.getElementById('p-min').value=5;
+      state.prodImages = [];
     }
-    updateImgPreview();
+    document.getElementById('p-imageUrl').value = '';
+    document.getElementById('p-imageFile').value = '';
+    document.getElementById('p-uploadStatus').textContent = '';
+    renderProdImages();
     refreshCatList();
   }
   if(name==='mov'){
     const sel = document.getElementById('m-prod');
-    sel.innerHTML = state.products.map(p=>`<option value="${p.id}">${p.sku} – ${p.name} (stock: ${p.stock})</option>`).join('');
+    sel.innerHTML = state.products.map(p=>'<option value="'+p.id+'">'+p.sku+' – '+p.name+' (stock: '+p.stock+')</option>').join('');
     document.getElementById('m-qty').value = 1;
     document.getElementById('m-price').value = '';
     document.getElementById('m-notes').value = '';
@@ -775,41 +928,72 @@ function openModal(name, id=null){
 }
 function closeModal(name){document.getElementById('modal-'+name).classList.remove('show')}
 
+// ===== PRODUCT IMAGES MANAGEMENT =====
+function renderProdImages(){
+  const list = document.getElementById('prodImagesList');
+  if(state.prodImages.length === 0){
+    list.innerHTML = '<span style="color:var(--muted);font-size:12px">Sin imágenes agregadas</span>';
+    return;
+  }
+  list.innerHTML = state.prodImages.map((url, i) => {
+    const safeUrl = url.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return '<div class="img-item"><img src="'+safeUrl+'" alt="" onerror="this.style.display=\'none\'"><button class="img-remove" onclick="removeProductImage('+i+')" title="Eliminar">&times;</button></div>';
+  }).join('');
+}
+
+function addProductImageUrl(){
+  const inp = document.getElementById('p-imageUrl');
+  const url = inp.value.trim();
+  if(!url){ toast('Ingresá una URL de imagen','error'); return; }
+  state.prodImages.push(url);
+  inp.value = '';
+  renderProdImages();
+}
+
+async function uploadAndAddProductImage(){
+  const fileInput = document.getElementById('p-imageFile');
+  if(fileInput.files.length===0){ toast('Seleccioná un archivo','error'); return; }
+  const statusEl = document.getElementById('p-uploadStatus');
+  statusEl.textContent = 'Subiendo imagen...';
+  try{
+    const url = await uploadImage(fileInput.files[0], 'products');
+    state.prodImages.push(url);
+    fileInput.value = '';
+    statusEl.textContent = '✓ Subida';
+    renderProdImages();
+  }catch(e){
+    statusEl.textContent = 'Error';
+    toast('Error subiendo imagen: '+e.message,'error');
+  }
+}
+
+function removeProductImage(index){
+  state.prodImages.splice(index, 1);
+  renderProdImages();
+}
+
 function updateImgPreview(){
-  const url = document.getElementById('p-imageUrl').value.trim();
-  const wrap = document.getElementById('imgPreviewWrap');
-  const img = document.getElementById('imgPreview');
-  if(url){ wrap.style.display='block'; img.src = url; img.onerror=()=>{img.src='';wrap.style.display='none'}; }
-  else wrap.style.display='none';
+  // kept for backward compat but no longer used in main flow
 }
 
 // ===== PRODUCTOS =====
 async function saveProduct(){
   const get = id=>document.getElementById('p-'+id).value.trim();
   const sku = get('sku'), name = get('name'), cat = get('cat')||'Sin categoría';
-  let imageUrl = get('imageUrl');
   const cost = parseFloat(get('cost'))||0, price = parseFloat(get('price'))||0;
   const stock = parseInt(get('stock'))||0, min = parseInt(get('min'))||0;
   if(!sku || !name){ alert('SKU y nombre son obligatorios'); return; }
   const btn = document.getElementById('saveProdBtn');
   btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Guardando...';
-  // Upload file if selected
-  const fileInput = document.getElementById('p-imageFile');
-  if(fileInput.files.length>0){
-    try{
-      document.getElementById('p-uploadStatus').textContent = 'Subiendo imagen...';
-      imageUrl = await uploadImage(fileInput.files[0], 'products');
-      document.getElementById('p-imageUrl').value = imageUrl;
-      document.getElementById('p-uploadStatus').textContent = '✓ Subida';
-    }catch(e){ toast('Error subiendo imagen: '+e.message,'error'); btn.disabled=false; btn.textContent='Guardar'; return; }
-  }
   try{
+    const images = [...state.prodImages];
+    const imageUrl = images.length > 0 ? images[0] : '';
     if(state.editingProdId){
-      await updateDoc(doc(db, 'products', state.editingProdId), {sku, name, cat, cost, price, stock, min, imageUrl});
+      await updateDoc(doc(db, 'products', state.editingProdId), {sku, name, cat, cost, price, stock, min, imageUrl, images});
       toast('Producto actualizado');
     }else{
       if(state.products.some(p=>p.sku===sku)){ alert('Ya existe un producto con ese SKU'); btn.disabled=false; btn.textContent='Guardar'; return; }
-      await addDoc(productsCol, {sku, name, cat, cost, price, stock, min, imageUrl, createdAt: serverTimestamp()});
+      await addDoc(productsCol, {sku, name, cat, cost, price, stock, min, imageUrl, images, createdAt: serverTimestamp()});
       toast('Producto creado');
     }
     closeModal('prod');
@@ -861,34 +1045,34 @@ async function saveMovement(){
 function openOrderModal(id){
   const o = state.orders.find(x=>x.id===id); if(!o) return;
   state.editingOrderId = id;
-  document.getElementById('orderModalTitle').textContent = `Pedido #${id.slice(0,6).toUpperCase()}`;
-  const itemsHtml = (o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${i.qty}× ${i.name}</span><span>${fmt(i.subtotal||i.qty*i.price)}</span></div>`).join('');
-  document.getElementById('orderModalBody').innerHTML = `
-    <div class="order-detail" style="margin-bottom:14px">
-      <strong>Cliente:</strong> ${o.customer?.name||'—'}<br>
-      <strong>Teléfono:</strong> ${o.customer?.phone||'—'}<br>
-      <strong>Dirección:</strong> ${o.customer?.address||'—'}<br>
-      ${o.notes?`<strong>Notas:</strong> ${o.notes}<br>`:''}
-      <strong>Fecha:</strong> ${fmtDate(o.createdAt)}<br>
-      <strong>Estado:</strong> <span class="pill ${o.status}">${o.status}</span>
-    </div>
-    <div class="order-detail">
-      <strong>Productos:</strong>
-      ${itemsHtml}
-      <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-weight:600">
-        <span>Total</span><span>${fmt(o.total)}</span>
-      </div>
-    </div>`;
+  document.getElementById('orderModalTitle').textContent = 'Pedido #'+id.slice(0,6).toUpperCase();
+  const itemsHtml = (o.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;padding:4px 0"><span>'+i.qty+'&times; '+i.name+'</span><span>'+fmt(i.subtotal||i.qty*i.price)+'</span></div>').join('');
+  document.getElementById('orderModalBody').innerHTML =
+    '<div class="order-detail" style="margin-bottom:14px">'+
+      '<strong>Cliente:</strong> '+(o.customer?.name||'—')+'<br>'+
+      '<strong>Teléfono:</strong> '+(o.customer?.phone||'—')+'<br>'+
+      '<strong>Dirección:</strong> '+(o.customer?.address||'—')+'<br>'+
+      (o.notes?'<strong>Notas:</strong> '+o.notes+'<br>':'')+
+      '<strong>Fecha:</strong> '+fmtDate(o.createdAt)+'<br>'+
+      '<strong>Estado:</strong> <span class="pill '+o.status+'">'+o.status+'</span>'+
+    '</div>'+
+    '<div class="order-detail">'+
+      '<strong>Productos:</strong>'+
+      itemsHtml+
+      '<div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-weight:600">'+
+        '<span>Total</span><span>'+fmt(o.total)+'</span>'+
+      '</div>'+
+    '</div>';
   const actions = document.getElementById('orderModalActions');
-  let btns = `<button class="btn secondary" onclick="closeModal('order')">Cerrar</button>`;
+  let btns = '<button class="btn secondary" onclick="closeModal(\'order\')">Cerrar</button>';
   if(o.status==='confirmado' || o.status==='entregado'){
-    btns += `<button class="btn" onclick="generateRemitoPDF('${o.id}')">📄 Generar remito PDF</button>`;
+    btns += '<div class="btn-group"><button class="btn small" onclick="generateRemitoPDF(\''+o.id+'\',\'download\')">📄 PDF</button><button class="btn small secondary" onclick="generateRemitoPDF(\''+o.id+'\',\'print\')">🖨️ Imprimir</button></div>';
   }
   if(o.status==='pendiente'){
-    btns += `<button class="btn danger" onclick="changeOrderStatus('cancelado')">Cancelar</button>`;
-    btns += `<button class="btn success" onclick="confirmOrder()">Confirmar (descuenta stock)</button>`;
+    btns += '<button class="btn danger" onclick="changeOrderStatus(\'cancelado\')">Cancelar</button>';
+    btns += '<button class="btn success" onclick="confirmOrder()">Confirmar (descuenta stock)</button>';
   } else if(o.status==='confirmado'){
-    btns += `<button class="btn success" onclick="changeOrderStatus('entregado')">Marcar entregado</button>`;
+    btns += '<button class="btn success" onclick="changeOrderStatus(\'entregado\')">Marcar entregado</button>';
   }
   actions.innerHTML = btns;
   document.getElementById('modal-order').classList.add('show');
@@ -903,18 +1087,18 @@ async function confirmOrder(){
       const snaps = await Promise.all(prodRefs.map(r=>tx.get(r)));
       for(let i=0;i<o.items.length;i++){
         const it = o.items[i], sn = snaps[i];
-        if(!sn.exists()) throw new Error(`Producto ${it.name} no existe`);
-        if(sn.data().stock < it.qty) throw new Error(`Stock insuficiente para ${it.name} (hay ${sn.data().stock}, se necesitan ${it.qty})`);
+        if(!sn.exists()) throw new Error('Producto '+it.name+' no existe');
+        if(sn.data().stock < it.qty) throw new Error('Stock insuficiente para '+it.name+' (hay '+sn.data().stock+', se necesitan '+it.qty+')');
       }
       for(let i=0;i<o.items.length;i++){
         tx.update(prodRefs[i], {stock: snaps[i].data().stock - o.items[i].qty});
       }
       for(const it of o.items){
-        tx.set(doc(movementsCol), {prodId:it.prodId, tipo:'salida', canal:'online', qty:it.qty, price:it.price, date:serverTimestamp(), notes:`Pedido #${o.id.slice(0,6).toUpperCase()} - ${o.customer?.name||''}`});
+        tx.set(doc(movementsCol), {prodId:it.prodId, tipo:'salida', canal:'online', qty:it.qty, price:it.price, date:serverTimestamp(), notes:'Pedido #'+o.id.slice(0,6).toUpperCase()+' - '+(o.customer?.name||'')});
       }
       tx.update(doc(db,'orders',o.id), {status:'confirmado', confirmedAt:serverTimestamp()});
     });
-    toast('Pedido confirmado y stock actualizado ✓');
+    toast('Pedido confirmado y stock actualizado');
     closeModal('order');
   }catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
 }
@@ -958,9 +1142,9 @@ function openCompraModal(){
   state.editingCompraId = null;
   document.getElementById('compraModalTitle').textContent = 'Nueva orden de compra';
   const supSel = document.getElementById('co-supplier');
-  supSel.innerHTML = '<option value="">— Seleccionar proveedor —</option>'+state.suppliers.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  supSel.innerHTML = '<option value="">— Seleccionar proveedor —</option>'+state.suppliers.map(s=>'<option value="'+s.id+'">'+s.name+'</option>').join('');
   const prodSel = document.getElementById('co-prod-sel');
-  prodSel.innerHTML = '<option value="">— Producto —</option>'+state.products.map(p=>`<option value="${p.id}" data-cost="${p.cost}">${p.sku} – ${p.name}</option>`).join('');
+  prodSel.innerHTML = '<option value="">— Producto —</option>'+state.products.map(p=>'<option value="'+p.id+'" data-cost="'+p.cost+'">'+p.sku+' – '+p.name+'</option>').join('');
   document.getElementById('co-prod-qty').value = 1;
   document.getElementById('co-prod-cost').value = '';
   document.getElementById('co-notes').value = '';
@@ -994,15 +1178,15 @@ function removeCompraItem(i){
 function renderCompraItems(){
   const tb = document.getElementById('compraItems');
   const cur = state.config.currency||'$';
-  tb.innerHTML = state.compraItems.map((it,i)=>`
-    <tr>
-      <td>${it.sku} – ${it.name}</td>
-      <td>${it.qty}</td>
-      <td>${cur}${it.cost}</td>
-      <td><strong>${cur}${it.subtotal}</strong></td>
-      <td><button class="btn small danger" onclick="removeCompraItem(${i})">×</button></td>
-    </tr>
-  `).join('') || '<tr><td colspan="5" class="empty">Sin productos aún</td></tr>';
+  tb.innerHTML = state.compraItems.map((it,i)=>
+    '<tr>'+
+      '<td>'+it.sku+' – '+it.name+'</td>'+
+      '<td>'+it.qty+'</td>'+
+      '<td>'+cur+it.cost+'</td>'+
+      '<td><strong>'+cur+it.subtotal+'</strong></td>'+
+      '<td><button class="btn small danger" onclick="removeCompraItem('+i+')">×</button></td>'+
+    '</tr>'
+  ).join('') || '<tr><td colspan="5" class="empty">Sin productos aún</td></tr>';
   const total = state.compraItems.reduce((s,i)=>s+i.subtotal,0);
   document.getElementById('compraTotal').textContent = fmt(total);
 }
@@ -1032,29 +1216,29 @@ async function savePurchaseOrder(){
 function openCompraDetail(id){
   const oc = state.purchaseOrders.find(x=>x.id===id); if(!oc) return;
   state.editingCompraId = id;
-  document.getElementById('compraDetailTitle').textContent = `OC #${id.slice(0,6).toUpperCase()}`;
-  const itemsHtml = (oc.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>${i.qty}× ${i.name}</span><span>${fmt(i.subtotal)}</span></div>`).join('');
-  document.getElementById('compraDetailBody').innerHTML = `
-    <div class="order-detail" style="margin-bottom:14px">
-      <strong>Proveedor:</strong> ${oc.supplierName}<br>
-      <strong>Fecha:</strong> ${fmtDate(oc.createdAt)}<br>
-      ${oc.receivedAt?`<strong>Recibida:</strong> ${fmtDate(oc.receivedAt)}<br>`:''}
-      <strong>Estado:</strong> <span class="pill ${oc.status}">${oc.status}</span><br>
-      ${oc.notes?`<strong>Notas:</strong> ${oc.notes}`:''}
-    </div>
-    <div class="order-detail">
-      <strong>Productos:</strong>
-      ${itemsHtml}
-      <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-weight:600">
-        <span>Total</span><span>${fmt(oc.total)}</span>
-      </div>
-    </div>`;
+  document.getElementById('compraDetailTitle').textContent = 'OC #'+id.slice(0,6).toUpperCase();
+  const itemsHtml = (oc.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;padding:4px 0"><span>'+i.qty+'&times; '+i.name+'</span><span>'+fmt(i.subtotal)+'</span></div>').join('');
+  document.getElementById('compraDetailBody').innerHTML =
+    '<div class="order-detail" style="margin-bottom:14px">'+
+      '<strong>Proveedor:</strong> '+oc.supplierName+'<br>'+
+      '<strong>Fecha:</strong> '+fmtDate(oc.createdAt)+'<br>'+
+      (oc.receivedAt?'<strong>Recibida:</strong> '+fmtDate(oc.receivedAt)+'<br>':'')+
+      '<strong>Estado:</strong> <span class="pill '+oc.status+'">'+oc.status+'</span><br>'+
+      (oc.notes?'<strong>Notas:</strong> '+oc.notes:'')+
+    '</div>'+
+    '<div class="order-detail">'+
+      '<strong>Productos:</strong>'+
+      itemsHtml+
+      '<div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-weight:600">'+
+        '<span>Total</span><span>'+fmt(oc.total)+'</span>'+
+      '</div>'+
+    '</div>';
   const actions = document.getElementById('compraDetailActions');
-  let btns = `<button class="btn secondary" onclick="closeModal('compra-detail')">Cerrar</button>`;
-  btns += `<button class="btn" onclick="generateOCPDF('${oc.id}')">📄 PDF orden de compra</button>`;
+  let btns = '<button class="btn secondary" onclick="closeModal(\'compra-detail\')">Cerrar</button>';
+  btns += '<div class="btn-group"><button class="btn small" onclick="generateOCPDF(\''+oc.id+'\',\'download\')">📄 PDF</button><button class="btn small secondary" onclick="generateOCPDF(\''+oc.id+'\',\'print\')">🖨️ Imprimir</button></div>';
   if(oc.status==='pendiente'){
-    btns += `<button class="btn danger" onclick="changeCompraStatus('cancelada')">Cancelar</button>`;
-    btns += `<button class="btn success" onclick="receiveCompra()">✅ Recibir mercadería (ingresa stock)</button>`;
+    btns += '<button class="btn danger" onclick="changeCompraStatus(\'cancelada\')">Cancelar</button>';
+    btns += '<button class="btn success" onclick="receiveCompra()">✅ Recibir mercadería (ingresa stock)</button>';
   }
   actions.innerHTML = btns;
   document.getElementById('modal-compra-detail').classList.add('show');
@@ -1069,15 +1253,15 @@ async function receiveCompra(){
       const snaps = await Promise.all(prodRefs.map(r=>tx.get(r)));
       for(let i=0;i<oc.items.length;i++){
         const it = oc.items[i], sn = snaps[i];
-        if(!sn.exists()) throw new Error(`Producto ${it.name} no existe`);
+        if(!sn.exists()) throw new Error('Producto '+it.name+' no existe');
         tx.update(prodRefs[i], {stock: sn.data().stock + it.qty});
       }
       for(const it of oc.items){
-        tx.set(doc(movementsCol), {prodId:it.prodId, tipo:'entrada', canal:'proveedor', qty:it.qty, price:it.cost, date:serverTimestamp(), notes:`OC #${oc.id.slice(0,6).toUpperCase()} - ${oc.supplierName}`});
+        tx.set(doc(movementsCol), {prodId:it.prodId, tipo:'entrada', canal:'proveedor', qty:it.qty, price:it.cost, date:serverTimestamp(), notes:'OC #'+oc.id.slice(0,6).toUpperCase()+' - '+oc.supplierName});
       }
       tx.update(doc(db,'purchaseOrders',oc.id), {status:'recibida', receivedAt:serverTimestamp()});
     });
-    toast('Mercadería recibida y stock actualizado ✓');
+    toast('Mercadería recibida y stock actualizado');
     closeModal('compra-detail');
   }catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
 }
@@ -1094,38 +1278,39 @@ function openClientModal(id){
   const c = state.customers.find(x=>x.id===id); if(!c) return;
   document.getElementById('clientModalTitle').textContent = c.name;
   const custOrders = state.orders.filter(o=>o.customerId===id);
-  const ordersHtml = custOrders.length ? custOrders.map(o=>`
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>#${o.id.slice(0,6).toUpperCase()} · ${fmtDateShort(o.createdAt)}</span>
-      <span><span class="pill ${o.status}">${o.status}</span> ${fmt(o.total)}</span>
-    </div>
-  `).join('') : '<div style="color:var(--muted);padding:8px 0">Sin pedidos vinculados</div>';
-  document.getElementById('clientModalBody').innerHTML = `
-    <div class="order-detail" style="margin-bottom:14px">
-      <strong>ID:</strong> ${id.slice(0,8).toUpperCase()}<br>
-      <strong>Teléfono:</strong> ${c.phone||'—'}<br>
-      <strong>Dirección:</strong> ${c.address||'—'}<br>
-      <strong>Registrado:</strong> ${fmtDate(c.createdAt)}<br>
-      <strong>Pedidos realizados:</strong> ${c.orderCount||0}<br>
-      <strong>Total gastado:</strong> ${fmt(c.totalSpent||0)}
-    </div>
-    <div class="order-detail">
-      <strong>Historial de pedidos:</strong>
-      ${ordersHtml}
-    </div>`;
+  const ordersHtml = custOrders.length ? custOrders.map(o=>
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">'+
+      '<span>#'+o.id.slice(0,6).toUpperCase()+' · '+fmtDateShort(o.createdAt)+'</span>'+
+      '<span><span class="pill '+o.status+'">'+o.status+'</span> '+fmt(o.total)+'</span>'+
+    '</div>'
+  ).join('') : '<div style="color:var(--muted);padding:8px 0">Sin pedidos vinculados</div>';
+  document.getElementById('clientModalBody').innerHTML =
+    '<div class="order-detail" style="margin-bottom:14px">'+
+      '<strong>ID:</strong> '+id.slice(0,8).toUpperCase()+'<br>'+
+      '<strong>Teléfono:</strong> '+(c.phone||'—')+'<br>'+
+      '<strong>Dirección:</strong> '+(c.address||'—')+'<br>'+
+      '<strong>Registrado:</strong> '+fmtDate(c.createdAt)+'<br>'+
+      '<strong>Pedidos realizados:</strong> '+(c.orderCount||0)+'<br>'+
+      '<strong>Total gastado:</strong> '+fmt(c.totalSpent||0)+
+    '</div>'+
+    '<div class="order-detail">'+
+      '<strong>Historial de pedidos:</strong>'+
+      ordersHtml+
+    '</div>';
   document.getElementById('modal-client').classList.add('show');
 }
 
 // ===== PDF: REMITO =====
-function generateRemitoPDF(orderId){
+function generateRemitoPDF(orderId, action){
+  action = action || 'download';
   const o = state.orders.find(x=>x.id===orderId); if(!o) return;
+  if(!window.jspdf){ toast('jsPDF no cargado, esperá un momento','error'); return; }
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF();
   const storeName = state.config.storeName || 'MyBusiness';
   const cur = state.config.currency || '$';
   const shortId = orderId.slice(0,6).toUpperCase();
 
-  // Header
   pdf.setFontSize(20);
   pdf.setFont('helvetica','bold');
   pdf.text(storeName, 20, 25);
@@ -1133,25 +1318,22 @@ function generateRemitoPDF(orderId){
   pdf.setFont('helvetica','normal');
   pdf.text('REMITO DE ENTREGA', 20, 34);
   pdf.setFontSize(10);
-  pdf.text(`Nro: R-${shortId}`, 150, 20);
+  pdf.text('Nro: R-'+shortId, 150, 20);
   const dateStr = o.confirmedAt ? fmtDateShort(o.confirmedAt) : fmtDateShort(o.createdAt);
-  pdf.text(`Fecha: ${dateStr}`, 150, 27);
+  pdf.text('Fecha: '+dateStr, 150, 27);
 
-  // Line
   pdf.setDrawColor(200);
   pdf.line(20, 40, 190, 40);
 
-  // Customer
   pdf.setFontSize(11);
   pdf.setFont('helvetica','bold');
   pdf.text('Datos del cliente', 20, 50);
   pdf.setFont('helvetica','normal');
   pdf.setFontSize(10);
-  pdf.text(`Nombre: ${o.customer?.name||'—'}`, 20, 58);
-  pdf.text(`Teléfono: ${o.customer?.phone||'—'}`, 20, 64);
-  pdf.text(`Dirección: ${o.customer?.address||'—'}`, 20, 70);
+  pdf.text('Nombre: '+(o.customer?.name||'—'), 20, 58);
+  pdf.text('Teléfono: '+(o.customer?.phone||'—'), 20, 64);
+  pdf.text('Dirección: '+(o.customer?.address||'—'), 20, 70);
 
-  // Table header
   let y = 85;
   pdf.setFillColor(240,240,240);
   pdf.rect(20, y-5, 170, 8, 'F');
@@ -1162,7 +1344,6 @@ function generateRemitoPDF(orderId){
   pdf.text('Precio', 135, y);
   pdf.text('Subtotal', 165, y);
 
-  // Items
   pdf.setFont('helvetica','normal');
   y += 10;
   (o.items||[]).forEach(it=>{
@@ -1173,22 +1354,20 @@ function generateRemitoPDF(orderId){
     y += 7;
   });
 
-  // Total
   y += 3;
   pdf.line(20, y, 190, y);
   y += 8;
   pdf.setFont('helvetica','bold');
   pdf.setFontSize(11);
-  pdf.text(`Total: ${cur}${Number(o.total).toLocaleString('es-AR')}`, 165, y, {align:'right'});
+  pdf.text('Total: '+cur+Number(o.total).toLocaleString('es-AR'), 165, y, {align:'right'});
 
   if(o.notes){
     y += 12;
     pdf.setFont('helvetica','normal');
     pdf.setFontSize(9);
-    pdf.text(`Notas: ${o.notes}`, 20, y);
+    pdf.text('Notas: '+o.notes, 20, y);
   }
 
-  // Signature lines
   y = Math.max(y+30, 220);
   pdf.setDrawColor(150);
   pdf.line(20, y, 85, y);
@@ -1198,13 +1377,20 @@ function generateRemitoPDF(orderId){
   pdf.text('Firma entrega', 40, y+5);
   pdf.text('Firma recepción', 140, y+5);
 
-  pdf.save(`remito-${shortId}.pdf`);
-  toast('Remito PDF descargado ✓');
+  if(action==='print'){
+    window.open(pdf.output('bloburl'), '_blank');
+    toast('PDF abierto para impresión');
+  }else{
+    pdf.save('remito-'+shortId+'.pdf');
+    toast('Remito PDF descargado');
+  }
 }
 
 // ===== PDF: ORDEN DE COMPRA =====
-function generateOCPDF(ocId){
+function generateOCPDF(ocId, action){
+  action = action || 'download';
   const oc = state.purchaseOrders.find(x=>x.id===ocId); if(!oc) return;
+  if(!window.jspdf){ toast('jsPDF no cargado, esperá un momento','error'); return; }
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF();
   const storeName = state.config.storeName || 'MyBusiness';
@@ -1218,28 +1404,26 @@ function generateOCPDF(ocId){
   pdf.setFont('helvetica','normal');
   pdf.text('ORDEN DE COMPRA', 20, 34);
   pdf.setFontSize(10);
-  pdf.text(`Nro: OC-${shortId}`, 150, 20);
-  pdf.text(`Fecha: ${fmtDateShort(oc.createdAt)}`, 150, 27);
-  if(oc.status==='recibida') pdf.text(`Recibida: ${fmtDateShort(oc.receivedAt)}`, 150, 34);
+  pdf.text('Nro: OC-'+shortId, 150, 20);
+  pdf.text('Fecha: '+fmtDateShort(oc.createdAt), 150, 27);
+  if(oc.status==='recibida') pdf.text('Recibida: '+fmtDateShort(oc.receivedAt), 150, 34);
 
   pdf.setDrawColor(200);
   pdf.line(20, 40, 190, 40);
 
-  // Supplier
   const sup = state.suppliers.find(s=>s.id===oc.supplierId);
   pdf.setFontSize(11);
   pdf.setFont('helvetica','bold');
   pdf.text('Proveedor', 20, 50);
   pdf.setFont('helvetica','normal');
   pdf.setFontSize(10);
-  pdf.text(`Nombre: ${oc.supplierName}`, 20, 58);
+  pdf.text('Nombre: '+oc.supplierName, 20, 58);
   if(sup){
-    if(sup.rut) pdf.text(`RUT/CI: ${sup.rut}`, 20, 64);
-    if(sup.phone) pdf.text(`Tel: ${sup.phone}`, 20, 70);
-    if(sup.address) pdf.text(`Dir: ${sup.address}`, 20, 76);
+    if(sup.rut) pdf.text('RUT/CI: '+sup.rut, 20, 64);
+    if(sup.phone) pdf.text('Tel: '+sup.phone, 20, 70);
+    if(sup.address) pdf.text('Dir: '+sup.address, 20, 76);
   }
 
-  // Table
   let y = (sup && sup.address) ? 90 : 80;
   pdf.setFillColor(240,240,240);
   pdf.rect(20, y-5, 170, 8, 'F');
@@ -1267,13 +1451,13 @@ function generateOCPDF(ocId){
   y += 8;
   pdf.setFont('helvetica','bold');
   pdf.setFontSize(11);
-  pdf.text(`Total: ${cur}${Number(oc.total).toLocaleString('es-AR')}`, 165, y, {align:'right'});
+  pdf.text('Total: '+cur+Number(oc.total).toLocaleString('es-AR'), 165, y, {align:'right'});
 
   if(oc.notes){
     y += 12;
     pdf.setFont('helvetica','normal');
     pdf.setFontSize(9);
-    pdf.text(`Notas: ${oc.notes}`, 20, y);
+    pdf.text('Notas: '+oc.notes, 20, y);
   }
 
   y = Math.max(y+30, 220);
@@ -1284,30 +1468,142 @@ function generateOCPDF(ocId){
   pdf.text('Autorizado por', 40, y+5);
   pdf.text('Recibido por', 140, y+5);
 
-  pdf.save(`orden-compra-${shortId}.pdf`);
-  toast('Orden de compra PDF descargada ✓');
+  if(action==='print'){
+    window.open(pdf.output('bloburl'), '_blank');
+    toast('PDF abierto para impresión');
+  }else{
+    pdf.save('orden-compra-'+shortId+'.pdf');
+    toast('Orden de compra PDF descargada');
+  }
+}
+
+// ===== PDF: VENTA / FACTURA =====
+function generateVentaPDF(orderId, action){
+  action = action || 'download';
+  const o = state.orders.find(x=>x.id===orderId); if(!o) return;
+  if(!window.jspdf){ toast('jsPDF no cargado, esperá un momento','error'); return; }
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF();
+  const storeName = state.config.storeName || 'MyBusiness';
+  const cur = state.config.currency || '$';
+  const shortId = orderId.slice(0,6).toUpperCase();
+
+  pdf.setFontSize(20);
+  pdf.setFont('helvetica','bold');
+  pdf.text(storeName, 20, 25);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica','normal');
+  pdf.text('FACTURA / COMPROBANTE DE VENTA', 20, 34);
+  pdf.setFontSize(10);
+  pdf.text('Nro: V-'+shortId, 150, 20);
+  const dateStr = o.confirmedAt ? fmtDateShort(o.confirmedAt) : fmtDateShort(o.createdAt);
+  pdf.text('Fecha: '+dateStr, 150, 27);
+  pdf.text('Estado: '+o.status, 150, 34);
+
+  pdf.setDrawColor(200);
+  pdf.line(20, 40, 190, 40);
+
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica','bold');
+  pdf.text('Datos del cliente', 20, 50);
+  pdf.setFont('helvetica','normal');
+  pdf.setFontSize(10);
+  pdf.text('Nombre: '+(o.customer?.name||'—'), 20, 58);
+  pdf.text('Teléfono: '+(o.customer?.phone||'—'), 20, 64);
+  pdf.text('Dirección: '+(o.customer?.address||'—'), 20, 70);
+
+  let y = 85;
+  pdf.setFillColor(240,240,240);
+  pdf.rect(20, y-5, 170, 8, 'F');
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(9);
+  pdf.text('Producto', 22, y);
+  pdf.text('Cant.', 115, y);
+  pdf.text('Precio', 135, y);
+  pdf.text('Subtotal', 165, y);
+
+  pdf.setFont('helvetica','normal');
+  y += 10;
+  (o.items||[]).forEach(it=>{
+    pdf.text(it.name, 22, y);
+    pdf.text(String(it.qty), 118, y);
+    pdf.text(cur+Number(it.price).toLocaleString('es-AR'), 135, y);
+    pdf.text(cur+Number(it.subtotal||it.qty*it.price).toLocaleString('es-AR'), 165, y);
+    y += 7;
+  });
+
+  y += 3;
+  pdf.line(20, y, 190, y);
+  y += 8;
+  pdf.setFont('helvetica','bold');
+  pdf.setFontSize(11);
+  pdf.text('Total: '+cur+Number(o.total).toLocaleString('es-AR'), 165, y, {align:'right'});
+
+  if(o.notes){
+    y += 12;
+    pdf.setFont('helvetica','normal');
+    pdf.setFontSize(9);
+    pdf.text('Notas: '+o.notes, 20, y);
+  }
+
+  y += 20;
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica','normal');
+  pdf.text('Gracias por su compra — '+storeName, 105, y, {align:'center'});
+
+  y = Math.max(y+20, 220);
+  pdf.setDrawColor(150);
+  pdf.line(20, y, 85, y);
+  pdf.line(115, y, 190, y);
+  pdf.setFontSize(8);
+  pdf.text('Vendedor', 40, y+5);
+  pdf.text('Cliente', 145, y+5);
+
+  if(action==='print'){
+    window.open(pdf.output('bloburl'), '_blank');
+    toast('Factura abierta para impresión');
+  }else{
+    pdf.save('factura-'+shortId+'.pdf');
+    toast('Factura PDF descargada');
+  }
 }
 
 // ===== SLIDER =====
-function openSlideModal(id=null){
+function openSlideModal(id){
+  id = id || null;
   state.editingSlideId = id;
   const catSel = document.getElementById('sl-linkCat');
   const cats = [...new Set(state.products.map(p=>p.cat))].filter(Boolean);
-  catSel.innerHTML = '<option value="">— Todas (sin filtro) —</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  let catOptions = '<option value="">— Todas (sin filtro) —</option>';
+  catOptions += cats.map(c=>'<option value="cat:'+c+'">'+c+'</option>').join('');
+  // Separator and offer subcategories
+  const activeOffers = state.offerCategories.filter(oc=>oc.active!==false);
+  if(activeOffers.length > 0){
+    catOptions += '<option disabled>— Ofertas —</option>';
+    catOptions += activeOffers.map(oc=>'<option value="offer:'+oc.id+'">🏷️ '+oc.name+'</option>').join('');
+  }
+  catSel.innerHTML = catOptions;
   if(id){
     const sl = state.slides.find(x=>x.id===id);
     document.getElementById('slideModalTitle').textContent = 'Editar slide';
     document.getElementById('sl-imageUrl').value = sl.imageUrl||'';
     document.getElementById('sl-title').value = sl.title||'';
     document.getElementById('sl-subtitle').value = sl.subtitle||'';
-    document.getElementById('sl-linkCat').value = sl.linkCategory||'';
+    // Determine the select value
+    if(sl.linkOfferCat){
+      catSel.value = 'offer:'+sl.linkOfferCat;
+    }else if(sl.linkCategory){
+      catSel.value = 'cat:'+sl.linkCategory;
+    }else{
+      catSel.value = '';
+    }
     document.getElementById('sl-linkUrl').value = sl.linkUrl||'';
     document.getElementById('sl-order').value = sl.order||1;
     document.getElementById('sl-active').value = sl.active===false?'false':'true';
   }else{
     document.getElementById('slideModalTitle').textContent = 'Nuevo slide';
     ['imageUrl','title','subtitle','linkUrl'].forEach(k=>document.getElementById('sl-'+k).value='');
-    document.getElementById('sl-linkCat').value = '';
+    catSel.value = '';
     document.getElementById('sl-order').value = state.slides.length+1;
     document.getElementById('sl-active').value = 'true';
   }
@@ -1318,22 +1614,24 @@ function openSlideModal(id=null){
 }
 function updateSlidePreview(){
   const url = document.getElementById('sl-imageUrl').value.trim();
-  const wrap = document.getElementById('slPreviewWrap');
   const img = document.getElementById('slPreview');
-  if(url){wrap.style.display='block';img.src=url;img.onerror=()=>{img.src='';wrap.style.display='none'};}
-  else wrap.style.display='none';
+  if(url){img.style.display='block';img.src=url;img.onerror=()=>{img.src='';img.style.display='none'};}
+  else img.style.display='none';
 }
 async function saveSlide(){
   let imageUrl = document.getElementById('sl-imageUrl').value.trim();
   const title = document.getElementById('sl-title').value.trim();
   const subtitle = document.getElementById('sl-subtitle').value.trim();
-  const linkCategory = document.getElementById('sl-linkCat').value;
+  const linkVal = document.getElementById('sl-linkCat').value;
+  let linkCategory = '';
+  let linkOfferCat = '';
+  if(linkVal.startsWith('cat:')) linkCategory = linkVal.slice(4);
+  else if(linkVal.startsWith('offer:')) linkOfferCat = linkVal.slice(6);
   const linkUrl = document.getElementById('sl-linkUrl').value.trim();
   const order = parseInt(document.getElementById('sl-order').value)||1;
   const active = document.getElementById('sl-active').value !== 'false';
   const btn = document.getElementById('saveSlideBtn');
   btn.disabled=true; btn.innerHTML='<span class="loader"></span> Guardando...';
-  // Upload file if selected
   const fileInput = document.getElementById('sl-imageFile');
   if(fileInput.files.length>0){
     try{
@@ -1345,7 +1643,7 @@ async function saveSlide(){
   }
   if(!imageUrl){ toast('Debés proporcionar una imagen (URL o archivo)','error'); btn.disabled=false; btn.textContent='Guardar slide'; return; }
   try{
-    const data = {imageUrl, title, subtitle, linkCategory, linkUrl, order, active};
+    const data = {imageUrl, title, subtitle, linkCategory, linkOfferCat, linkUrl, order, active};
     if(state.editingSlideId){
       await updateDoc(doc(db,'slides',state.editingSlideId), data);
       toast('Slide actualizado');
@@ -1361,6 +1659,93 @@ async function saveSlide(){
 async function deleteSlide(id){
   if(!confirm('¿Eliminar este slide?')) return;
   try{ await deleteDoc(doc(db,'slides',id)); toast('Slide eliminado'); }catch(e){ toast('Error: '+e.message,'error'); }
+}
+
+// ===== OFFER CATEGORIES =====
+function openOfferCatModal(id){
+  id = id || null;
+  state.editingOfferCatId = id;
+  const prodListEl = document.getElementById('oc-products-list');
+  let selectedIds = [];
+  if(id){
+    const oc = state.offerCategories.find(x=>x.id===id);
+    document.getElementById('offerCatModalTitle').textContent = 'Editar subcategoría';
+    document.getElementById('oc-name').value = oc.name||'';
+    document.getElementById('oc-desc').value = oc.description||'';
+    document.getElementById('oc-order').value = oc.order||1;
+    document.getElementById('oc-active').value = oc.active===false?'false':'true';
+    selectedIds = oc.productIds||[];
+  }else{
+    document.getElementById('offerCatModalTitle').textContent = 'Nueva subcategoría de oferta';
+    document.getElementById('oc-name').value = '';
+    document.getElementById('oc-desc').value = '';
+    document.getElementById('oc-order').value = state.offerCategories.length+1;
+    document.getElementById('oc-active').value = 'true';
+  }
+  prodListEl.innerHTML = state.products.map(p=>{
+    const checked = selectedIds.includes(p.id) ? 'checked' : '';
+    return '<label><input type="checkbox" value="'+p.id+'" '+checked+'> '+p.sku+' — '+p.name+'</label>';
+  }).join('') || '<span style="color:var(--muted)">Sin productos en catálogo</span>';
+  document.getElementById('modal-offercat').classList.add('show');
+}
+
+async function saveOfferCategory(){
+  const name = document.getElementById('oc-name').value.trim();
+  if(!name){ alert('El nombre es obligatorio'); return; }
+  const description = document.getElementById('oc-desc').value.trim();
+  const order = parseInt(document.getElementById('oc-order').value)||1;
+  const active = document.getElementById('oc-active').value !== 'false';
+  const checkboxes = document.querySelectorAll('#oc-products-list input[type=checkbox]:checked');
+  const productIds = Array.from(checkboxes).map(cb=>cb.value);
+  const btn = document.getElementById('saveOfferCatBtn');
+  btn.disabled=true; btn.innerHTML='<span class="loader"></span> Guardando...';
+  try{
+    const data = {name, description, productIds, order, active};
+    if(state.editingOfferCatId){
+      await updateDoc(doc(db,'offerCategories',state.editingOfferCatId), data);
+      toast('Subcategoría actualizada');
+    }else{
+      data.createdAt = serverTimestamp();
+      await addDoc(offerCategoriesCol, data);
+      toast('Subcategoría creada');
+    }
+    closeModal('offercat');
+  }catch(e){ toast('Error: '+e.message,'error'); }
+  btn.disabled=false; btn.textContent='Guardar';
+}
+
+async function deleteOfferCategory(id){
+  if(!confirm('¿Eliminar esta subcategoría de oferta?')) return;
+  try{ await deleteDoc(doc(db,'offerCategories',id)); toast('Subcategoría eliminada'); }catch(e){ toast('Error: '+e.message,'error'); }
+}
+
+// ===== VENTAS SECTION =====
+function openVentaModal(id){
+  const o = state.orders.find(x=>x.id===id); if(!o) return;
+  document.getElementById('ventaModalTitle').textContent = 'Venta / Factura #'+id.slice(0,6).toUpperCase();
+  const itemsHtml = (o.items||[]).map(i=>'<div style="display:flex;justify-content:space-between;padding:4px 0"><span>'+i.qty+'&times; '+i.name+'</span><span>'+fmt(i.subtotal||i.qty*i.price)+'</span></div>').join('');
+  const canal = o.channel || 'online';
+  document.getElementById('ventaModalBody').innerHTML =
+    '<div class="order-detail" style="margin-bottom:14px">'+
+      '<strong>Cliente:</strong> '+(o.customer?.name||'—')+'<br>'+
+      '<strong>Teléfono:</strong> '+(o.customer?.phone||'—')+'<br>'+
+      '<strong>Dirección:</strong> '+(o.customer?.address||'—')+'<br>'+
+      '<strong>Canal:</strong> <span class="pill '+canal+'">'+canal+'</span><br>'+
+      '<strong>Fecha:</strong> '+fmtDate(o.createdAt)+'<br>'+
+      '<strong>Estado:</strong> <span class="pill '+o.status+'">'+o.status+'</span>'+
+      (o.notes?'<br><strong>Notas:</strong> '+o.notes:'')+
+    '</div>'+
+    '<div class="order-detail">'+
+      '<strong>Productos:</strong>'+
+      itemsHtml+
+      '<div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-weight:600">'+
+        '<span>Total</span><span>'+fmt(o.total)+'</span>'+
+      '</div>'+
+    '</div>';
+  document.getElementById('ventaModalActions').innerHTML =
+    '<button class="btn secondary" onclick="closeModal(\'venta\')">Cerrar</button>'+
+    '<div class="btn-group"><button class="btn small" onclick="generateVentaPDF(\''+o.id+'\',\'download\')">📄 PDF Factura</button><button class="btn small secondary" onclick="generateVentaPDF(\''+o.id+'\',\'print\')">🖨️ Imprimir</button></div>';
+  document.getElementById('modal-venta').classList.add('show');
 }
 
 // ===== CONFIG =====
@@ -1401,26 +1786,39 @@ async function seedDemo(){
   btn.disabled=true; btn.textContent='Cargando...';
   try{
     const demo = [
-      {sku:"REM-001",name:"Remera blanca básica",cat:"Remeras",cost:450,price:1200,stock:32,min:10,imageUrl:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800"},
-      {sku:"REM-002",name:"Remera negra estampada",cat:"Remeras",cost:520,price:1500,stock:8,min:10,imageUrl:"https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800"},
-      {sku:"PAN-001",name:"Pantalón jean clásico",cat:"Pantalones",cost:1200,price:3200,stock:18,min:5,imageUrl:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=800"},
-      {sku:"PAN-002",name:"Pantalón cargo verde",cat:"Pantalones",cost:1400,price:3800,stock:3,min:5,imageUrl:"https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800"},
-      {sku:"BUZ-001",name:"Buzo canguro gris",cat:"Buzos",cost:1800,price:4500,stock:15,min:8,imageUrl:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800"},
-      {sku:"ACC-001",name:"Gorra trucker negra",cat:"Accesorios",cost:380,price:1100,stock:0,min:5,imageUrl:"https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800"},
-      {sku:"ACC-002",name:"Mochila urbana",cat:"Accesorios",cost:2200,price:5500,stock:7,min:3,imageUrl:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800"},
-      {sku:"CAL-001",name:"Zapatillas running 42",cat:"Calzado",cost:3500,price:8900,stock:12,min:4,imageUrl:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800"}
+      {sku:"REM-001",name:"Remera blanca básica",cat:"Remeras",cost:450,price:1200,stock:32,min:10,imageUrl:"https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",images:["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800"]},
+      {sku:"REM-002",name:"Remera negra estampada",cat:"Remeras",cost:520,price:1500,stock:8,min:10,imageUrl:"https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800",images:["https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=800"]},
+      {sku:"PAN-001",name:"Pantalón jean clásico",cat:"Pantalones",cost:1200,price:3200,stock:18,min:5,imageUrl:"https://images.unsplash.com/photo-1542272604-787c3835535d?w=800",images:["https://images.unsplash.com/photo-1542272604-787c3835535d?w=800"]},
+      {sku:"PAN-002",name:"Pantalón cargo verde",cat:"Pantalones",cost:1400,price:3800,stock:3,min:5,imageUrl:"https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800",images:["https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=800"]},
+      {sku:"BUZ-001",name:"Buzo canguro gris",cat:"Buzos",cost:1800,price:4500,stock:15,min:8,imageUrl:"https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800",images:["https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800"]},
+      {sku:"ACC-001",name:"Gorra trucker negra",cat:"Accesorios",cost:380,price:1100,stock:0,min:5,imageUrl:"https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800",images:["https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800"]},
+      {sku:"ACC-002",name:"Mochila urbana",cat:"Accesorios",cost:2200,price:5500,stock:7,min:3,imageUrl:"https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800",images:["https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800"]},
+      {sku:"CAL-001",name:"Zapatillas running 42",cat:"Calzado",cost:3500,price:8900,stock:12,min:4,imageUrl:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800",images:["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800"]}
     ];
     const batch = writeBatch(db);
-    demo.forEach(p=>batch.set(doc(productsCol), {...p, createdAt: serverTimestamp()}));
+    const prodRefs = [];
+    demo.forEach(p=>{
+      const ref = doc(productsCol);
+      prodRefs.push({ref, data:p});
+      batch.set(ref, {...p, createdAt: serverTimestamp()});
+    });
     // Seed suppliers demo
     const sup1 = doc(suppliersCol);
     batch.set(sup1, {name:'Distribuidora Textil SA', rut:'21-234567-0001-56', phone:'099 456 789', email:'ventas@textilsa.com', address:'Av. Libertador 1234, Montevideo', notes:'Entrega en 48hs. Pago a 30 días.', createdAt:serverTimestamp()});
     const sup2 = doc(suppliersCol);
     batch.set(sup2, {name:'Calzados del Sur', rut:'21-345678-0001-90', phone:'098 123 456', email:'pedidos@calzadosur.com', address:'Ruta 5 km 42, Canelones', notes:'Mínimo 10 pares por pedido.', createdAt:serverTimestamp()});
     // Seed slides demo
-    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&h=500&fit=crop', title:'Nueva colección', subtitle:'Remeras y buzos para esta temporada', linkCategory:'Remeras', linkUrl:'', order:1, active:true, createdAt:serverTimestamp()});
-    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&h=500&fit=crop', title:'Calzado deportivo', subtitle:'Las mejores zapatillas al mejor precio', linkCategory:'Calzado', linkUrl:'', order:2, active:true, createdAt:serverTimestamp()});
-    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=500&fit=crop', title:'Accesorios', subtitle:'Mochilas, gorras y más', linkCategory:'Accesorios', linkUrl:'', order:3, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200&h=500&fit=crop', title:'Nueva colección', subtitle:'Remeras y buzos para esta temporada', linkCategory:'Remeras', linkOfferCat:'', linkUrl:'', order:1, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&h=500&fit=crop', title:'Calzado deportivo', subtitle:'Las mejores zapatillas al mejor precio', linkCategory:'Calzado', linkOfferCat:'', linkUrl:'', order:2, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(slidesCol), {imageUrl:'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1200&h=500&fit=crop', title:'Accesorios', subtitle:'Mochilas, gorras y más', linkCategory:'Accesorios', linkOfferCat:'', linkUrl:'', order:3, active:true, createdAt:serverTimestamp()});
+    // Seed offer categories demo
+    // We need product IDs but they are not created yet, so we use the refs
+    const offerCat1Prods = [prodRefs[0].ref.id, prodRefs[1].ref.id, prodRefs[4].ref.id];
+    const offerCat2Prods = [prodRefs[5].ref.id, prodRefs[6].ref.id];
+    const offerCat3Prods = [prodRefs[2].ref.id, prodRefs[3].ref.id, prodRefs[7].ref.id];
+    batch.set(doc(offerCategoriesCol), {name:'Liquidación de temporada', description:'Productos con hasta 40% de descuento', productIds:offerCat1Prods, order:1, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(offerCategoriesCol), {name:'2x1 en accesorios', description:'Llevá 2 accesorios y pagá solo 1', productIds:offerCat2Prods, order:2, active:true, createdAt:serverTimestamp()});
+    batch.set(doc(offerCategoriesCol), {name:'Ofertas de la semana', description:'Selección especial de esta semana', productIds:offerCat3Prods, order:3, active:true, createdAt:serverTimestamp()});
     const cfgSnap = await getDoc(configRef);
     if(!cfgSnap.exists()){
       batch.set(configRef, {
@@ -1429,13 +1827,13 @@ async function seedDemo(){
       });
     }
     await batch.commit();
-    toast('Datos demo cargados (productos + proveedores + slides) ✓');
+    toast('Datos demo cargados (productos + proveedores + slides + ofertas)');
   }catch(e){ toast('Error: '+e.message,'error'); }
   btn.disabled=false; btn.textContent='🌱 Cargar datos demo';
 }
 
 function exportJSON(){
-  const data = JSON.stringify({products:state.products, movements:state.movements, orders:state.orders, customers:state.customers, suppliers:state.suppliers, purchaseOrders:state.purchaseOrders, slides:state.slides, config:state.config},null,2);
+  const data = JSON.stringify({products:state.products, movements:state.movements, orders:state.orders, customers:state.customers, suppliers:state.suppliers, purchaseOrders:state.purchaseOrders, slides:state.slides, offerCategories:state.offerCategories, config:state.config},null,2);
   const blob = new Blob([data],{type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href=url; a.download='mybusiness-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
@@ -1444,10 +1842,10 @@ function exportJSON(){
 // ===== RENDER =====
 function refreshCatList(){
   const cats=[...new Set(state.products.map(p=>p.cat))];
-  document.getElementById('catList').innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+  document.getElementById('catList').innerHTML = cats.map(c=>'<option value="'+c+'">').join('');
   const filterCat = document.getElementById('filterCat');
   const cur = filterCat.value;
-  filterCat.innerHTML = '<option value="">Todas las categorías</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  filterCat.innerHTML = '<option value="">Todas las categorías</option>'+cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
   filterCat.value = cur;
 }
 
@@ -1471,9 +1869,9 @@ function renderDashboard(){
 
   const alertSum = document.getElementById('alertSummary');
   const alerts = [];
-  if(pendingOrders.length) alerts.push(`<strong>${pendingOrders.length}</strong> pedido${pendingOrders.length>1?'s':''} pendiente${pendingOrders.length>1?'s':''}`);
-  if(lows.length) alerts.push(`<strong>${lows.length}</strong> producto${lows.length>1?'s':''} con stock bajo`);
-  alertSum.innerHTML = alerts.length ? `<div class="alert-banner">⚠️ ${alerts.join(' · ')}</div>` : '';
+  if(pendingOrders.length) alerts.push('<strong>'+pendingOrders.length+'</strong> pedido'+(pendingOrders.length>1?'s':'')+' pendiente'+(pendingOrders.length>1?'s':''));
+  if(lows.length) alerts.push('<strong>'+lows.length+'</strong> producto'+(lows.length>1?'s':'')+' con stock bajo');
+  alertSum.innerHTML = alerts.length ? '<div class="alert-banner">⚠️ '+alerts.join(' · ')+'</div>' : '';
 
   const orderBadge = document.getElementById('orderBadge');
   if(pendingOrders.length){orderBadge.style.display='inline-block';orderBadge.textContent=pendingOrders.length} else orderBadge.style.display='none';
@@ -1484,22 +1882,22 @@ function renderDashboard(){
   ventas30.forEach(m=>{top[m.prodId]=(top[m.prodId]||0)+m.qty});
   const topArr = Object.entries(top).map(([id,q])=>({p:state.products.find(x=>x.id==id), q})).filter(x=>x.p).sort((a,b)=>b.q-a.q).slice(0,5);
   const max = Math.max(...topArr.map(x=>x.q),1);
-  document.getElementById('topProductsChart').innerHTML = topArr.length?topArr.map(x=>`
-    <div class="bar-row"><div class="name">${x.p.name}</div><div class="bar"><div style="width:${x.q/max*100}%"></div></div><div class="val">${x.q} u.</div></div>
-  `).join(''):'<div class="empty">Sin ventas en 30 días</div>';
+  document.getElementById('topProductsChart').innerHTML = topArr.length?topArr.map(x=>
+    '<div class="bar-row"><div class="name">'+x.p.name+'</div><div class="bar"><div style="width:'+x.q/max*100+'%"></div></div><div class="val">'+x.q+' u.</div></div>'
+  ).join(''):'<div class="empty">Sin ventas en 30 días</div>';
 
   const ch={fisica:0,online:0};
   ventas30.forEach(m=>{if(ch[m.canal]!==undefined)ch[m.canal]+=m.qty*m.price});
   const chMax = Math.max(ch.fisica,ch.online,1);
-  document.getElementById('channelChart').innerHTML = (ch.fisica||ch.online)?`
-    <div class="bar-row"><div class="name">🏪 Tienda física</div><div class="bar"><div style="width:${ch.fisica/chMax*100}%;background:var(--success)"></div></div><div class="val">${fmt(ch.fisica)}</div></div>
-    <div class="bar-row"><div class="name">🌐 Online</div><div class="bar"><div style="width:${ch.online/chMax*100}%;background:var(--accent)"></div></div><div class="val">${fmt(ch.online)}</div></div>
-  `:'<div class="empty">Sin ventas en 30 días</div>';
+  document.getElementById('channelChart').innerHTML = (ch.fisica||ch.online)?
+    '<div class="bar-row"><div class="name">🏪 Tienda física</div><div class="bar"><div style="width:'+ch.fisica/chMax*100+'%;background:var(--success)"></div></div><div class="val">'+fmt(ch.fisica)+'</div></div>'+
+    '<div class="bar-row"><div class="name">🌐 Online</div><div class="bar"><div style="width:'+ch.online/chMax*100+'%;background:var(--accent)"></div></div><div class="val">'+fmt(ch.online)+'</div></div>'
+    :'<div class="empty">Sin ventas en 30 días</div>';
 
   const recent = state.movements.slice(0,5);
   document.getElementById('recentMovs').innerHTML = recent.map(m=>{
     const p = state.products.find(x=>x.id===m.prodId);
-    return `<tr><td>${fmtDate(m.date)}</td><td>${p?p.name:'(eliminado)'}</td><td><span class="pill ${m.tipo==='entrada'?'in':'out'}">${m.tipo}</span></td><td><span class="pill ${m.canal==='online'?'online':'fisica'}">${m.canal}</span></td><td>${m.qty}</td><td>${fmt(m.qty*m.price)}</td></tr>`;
+    return '<tr><td>'+fmtDate(m.date)+'</td><td>'+(p?p.name:'(eliminado)')+'</td><td><span class="pill '+(m.tipo==='entrada'?'in':'out')+'">'+m.tipo+'</span></td><td><span class="pill '+(m.canal==='online'?'online':'fisica')+'">'+m.canal+'</span></td><td>'+m.qty+'</td><td>'+fmt(m.qty*m.price)+'</td></tr>';
   }).join('') || '<tr><td colspan="6" class="empty">Sin movimientos</td></tr>';
 }
 
@@ -1516,15 +1914,15 @@ function renderCatalogo(){
   }).sort((a,b)=>a.sku.localeCompare(b.sku));
   document.getElementById('prodTable').innerHTML = filtered.map(p=>{
     const s = stockStatus(p);
-    return `<tr>
-      <td>${thumb(p)}</td><td><code>${p.sku}</code></td><td>${p.name}</td><td>${p.cat}</td>
-      <td>${fmt(p.cost)}</td><td>${fmt(p.price)}</td><td><strong>${p.stock}</strong></td><td>${p.min}</td>
-      <td><span class="pill ${s.pill}">${s.label}</span></td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="btn small secondary" onclick="openModal('prod','${p.id}')">Editar</button>
-        <button class="btn small danger" onclick="deleteProduct('${p.id}')">×</button>
-      </td>
-    </tr>`;
+    return '<tr>'+
+      '<td>'+thumbHtml(p)+'</td><td><code>'+p.sku+'</code></td><td>'+p.name+'</td><td>'+p.cat+'</td>'+
+      '<td>'+fmt(p.cost)+'</td><td>'+fmt(p.price)+'</td><td><strong>'+p.stock+'</strong></td><td>'+p.min+'</td>'+
+      '<td><span class="pill '+s.pill+'">'+s.label+'</span></td>'+
+      '<td style="text-align:right;white-space:nowrap">'+
+        '<button class="btn small secondary" onclick="openModal(\'prod\',\''+p.id+'\')">Editar</button>'+
+        '<button class="btn small danger" onclick="deleteProduct(\''+p.id+'\')">×</button>'+
+      '</td>'+
+    '</tr>';
   }).join('') || '<tr><td colspan="10" class="empty">Sin productos</td></tr>';
 }
 
@@ -1534,13 +1932,13 @@ function renderMovimientos(){
   const filtered = state.movements.filter(m=>(!ft||m.tipo===ft) && (!fc||m.canal===fc));
   document.getElementById('movTable').innerHTML = filtered.map(m=>{
     const p = state.products.find(x=>x.id===m.prodId);
-    return `<tr>
-      <td>${fmtDate(m.date)}</td><td>${p?p.name:'(eliminado)'}</td>
-      <td><span class="pill ${m.tipo==='entrada'?'in':'out'}">${m.tipo}</span></td>
-      <td><span class="pill ${m.canal==='online'?'online':'fisica'}">${m.canal}</span></td>
-      <td>${m.qty}</td><td>${fmt(m.price)}</td><td><strong>${fmt(m.qty*m.price)}</strong></td>
-      <td style="color:var(--muted);font-size:12px">${m.notes||'-'}</td>
-    </tr>`;
+    return '<tr>'+
+      '<td>'+fmtDate(m.date)+'</td><td>'+(p?p.name:'(eliminado)')+'</td>'+
+      '<td><span class="pill '+(m.tipo==='entrada'?'in':'out')+'">'+m.tipo+'</span></td>'+
+      '<td><span class="pill '+(m.canal==='online'?'online':'fisica')+'">'+m.canal+'</span></td>'+
+      '<td>'+m.qty+'</td><td>'+fmt(m.price)+'</td><td><strong>'+fmt(m.qty*m.price)+'</strong></td>'+
+      '<td style="color:var(--muted);font-size:12px">'+(m.notes||'-')+'</td>'+
+    '</tr>';
   }).join('') || '<tr><td colspan="8" class="empty">Sin movimientos</td></tr>';
 }
 
@@ -1549,15 +1947,85 @@ function renderPedidos(){
   const filtered = state.orders.filter(o=>!fs||o.status===fs);
   document.getElementById('orderTable').innerHTML = filtered.map(o=>{
     const items = o.items?.length || 0;
-    return `<tr>
-      <td>${fmtDate(o.createdAt)}</td>
-      <td><strong>${o.customer?.name||'—'}</strong><br><span style="font-size:11px;color:var(--muted)">${o.customer?.phone||''}</span></td>
-      <td>${items} item${items!==1?'s':''}</td>
-      <td><strong>${fmt(o.total)}</strong></td>
-      <td><span class="pill ${o.status}">${o.status}</span></td>
-      <td style="text-align:right"><button class="btn small" onclick="openOrderModal('${o.id}')">Ver detalle</button></td>
-    </tr>`;
+    return '<tr>'+
+      '<td>'+fmtDate(o.createdAt)+'</td>'+
+      '<td><strong>'+(o.customer?.name||'—')+'</strong><br><span style="font-size:11px;color:var(--muted)">'+(o.customer?.phone||'')+'</span></td>'+
+      '<td>'+items+' item'+(items!==1?'s':'')+'</td>'+
+      '<td><strong>'+fmt(o.total)+'</strong></td>'+
+      '<td><span class="pill '+o.status+'">'+o.status+'</span></td>'+
+      '<td style="text-align:right"><button class="btn small" onclick="openOrderModal(\''+o.id+'\')">Ver detalle</button></td>'+
+    '</tr>';
   }).join('') || '<tr><td colspan="6" class="empty">Sin pedidos</td></tr>';
+}
+
+function renderVentas(){
+  const sales = state.orders.filter(o=>o.status==='confirmado'||o.status==='entregado');
+
+  // KPIs
+  const totalVentas = sales.reduce((s,o)=>s+(o.total||0),0);
+  const countVentas = sales.length;
+  const avgTicket = countVentas>0 ? totalVentas/countVentas : 0;
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todaySales = sales.filter(o=>{
+    if(!o.createdAt) return false;
+    const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+    return d >= todayStart;
+  });
+  const todayTotal = todaySales.reduce((s,o)=>s+(o.total||0),0);
+
+  document.getElementById('vkpi-total').textContent = fmt(totalVentas);
+  document.getElementById('vkpi-count').textContent = countVentas;
+  document.getElementById('vkpi-avg').textContent = fmt(avgTicket);
+  document.getElementById('vkpi-today').textContent = fmt(todayTotal);
+
+  // Filters
+  const dateFrom = document.getElementById('ventaDateFrom').value;
+  const dateTo = document.getElementById('ventaDateTo').value;
+  const channelFilter = document.getElementById('ventaChannel').value;
+  const statusFilter = document.getElementById('ventaStatus').value;
+
+  let filtered = sales;
+  if(dateFrom){
+    const from = new Date(dateFrom);
+    filtered = filtered.filter(o=>{
+      if(!o.createdAt) return false;
+      const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+      return d >= from;
+    });
+  }
+  if(dateTo){
+    const to = new Date(dateTo); to.setHours(23,59,59,999);
+    filtered = filtered.filter(o=>{
+      if(!o.createdAt) return false;
+      const d = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+      return d <= to;
+    });
+  }
+  if(channelFilter){
+    filtered = filtered.filter(o=>(o.channel||'online')===channelFilter);
+  }
+  if(statusFilter){
+    filtered = filtered.filter(o=>o.status===statusFilter);
+  }
+
+  document.getElementById('ventaTable').innerHTML = filtered.map(o=>{
+    const items = o.items?.length || 0;
+    const canal = o.channel || 'online';
+    return '<tr>'+
+      '<td>'+fmtDate(o.createdAt)+'</td>'+
+      '<td><code>V-'+o.id.slice(0,6).toUpperCase()+'</code></td>'+
+      '<td><strong>'+(o.customer?.name||'—')+'</strong></td>'+
+      '<td><span class="pill '+canal+'">'+canal+'</span></td>'+
+      '<td>'+items+' item'+(items!==1?'s':'')+'</td>'+
+      '<td><strong>'+fmt(o.total)+'</strong></td>'+
+      '<td><span class="pill '+o.status+'">'+o.status+'</span></td>'+
+      '<td style="text-align:right;white-space:nowrap">'+
+        '<button class="btn small" onclick="openVentaModal(\''+o.id+'\')">Ver detalle</button> '+
+        '<button class="btn small secondary" onclick="generateVentaPDF(\''+o.id+'\',\'download\')">📄 PDF</button> '+
+        '<button class="btn small secondary" onclick="generateVentaPDF(\''+o.id+'\',\'print\')">🖨️</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('') || '<tr><td colspan="8" class="empty">Sin ventas registradas</td></tr>';
 }
 
 function renderClientes(){
@@ -1566,34 +2034,34 @@ function renderClientes(){
     if(!search) return true;
     return (c.name||'').toLowerCase().includes(search)||(c.phone||'').includes(search);
   });
-  document.getElementById('clientTable').innerHTML = filtered.map(c=>`
-    <tr>
-      <td><code>${c.id.slice(0,8).toUpperCase()}</code></td>
-      <td><strong>${c.name}</strong></td>
-      <td>${c.phone||'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${c.address||'—'}</td>
-      <td>${c.orderCount||0}</td>
-      <td><strong>${fmt(c.totalSpent||0)}</strong></td>
-      <td>${fmtDateShort(c.createdAt)}</td>
-      <td style="text-align:right"><button class="btn small" onclick="openClientModal('${c.id}')">Ver detalle</button></td>
-    </tr>
-  `).join('') || '<tr><td colspan="8" class="empty">Sin clientes registrados. Se agregan automáticamente al realizar pedidos desde la tienda.</td></tr>';
+  document.getElementById('clientTable').innerHTML = filtered.map(c=>
+    '<tr>'+
+      '<td><code>'+c.id.slice(0,8).toUpperCase()+'</code></td>'+
+      '<td><strong>'+c.name+'</strong></td>'+
+      '<td>'+(c.phone||'—')+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">'+(c.address||'—')+'</td>'+
+      '<td>'+(c.orderCount||0)+'</td>'+
+      '<td><strong>'+fmt(c.totalSpent||0)+'</strong></td>'+
+      '<td>'+fmtDateShort(c.createdAt)+'</td>'+
+      '<td style="text-align:right"><button class="btn small" onclick="openClientModal(\''+c.id+'\')">Ver detalle</button></td>'+
+    '</tr>'
+  ).join('') || '<tr><td colspan="8" class="empty">Sin clientes registrados. Se agregan automáticamente al realizar pedidos desde la tienda.</td></tr>';
 }
 
 function renderProveedores(){
-  document.getElementById('supplierTable').innerHTML = state.suppliers.map(s=>`
-    <tr>
-      <td><strong>${s.name}</strong></td>
-      <td>${s.rut||'—'}</td>
-      <td>${s.phone||'—'}</td>
-      <td>${s.email||'—'}</td>
-      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${s.address||'—'}</td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="btn small secondary" onclick="openModal('supplier','${s.id}')">Editar</button>
-        <button class="btn small danger" onclick="deleteSupplier('${s.id}')">×</button>
-      </td>
-    </tr>
-  `).join('') || '<tr><td colspan="6" class="empty">Sin proveedores. Usá "Cargar datos demo" o "Nuevo proveedor".</td></tr>';
+  document.getElementById('supplierTable').innerHTML = state.suppliers.map(s=>
+    '<tr>'+
+      '<td><strong>'+s.name+'</strong></td>'+
+      '<td>'+(s.rut||'—')+'</td>'+
+      '<td>'+(s.phone||'—')+'</td>'+
+      '<td>'+(s.email||'—')+'</td>'+
+      '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">'+(s.address||'—')+'</td>'+
+      '<td style="text-align:right;white-space:nowrap">'+
+        '<button class="btn small secondary" onclick="openModal(\'supplier\',\''+s.id+'\')">Editar</button>'+
+        '<button class="btn small danger" onclick="deleteSupplier(\''+s.id+'\')">×</button>'+
+      '</td>'+
+    '</tr>'
+  ).join('') || '<tr><td colspan="6" class="empty">Sin proveedores. Usá "Cargar datos demo" o "Nuevo proveedor".</td></tr>';
 }
 
 function renderCompras(){
@@ -1601,14 +2069,14 @@ function renderCompras(){
   const filtered = state.purchaseOrders.filter(o=>!fs||o.status===fs);
   document.getElementById('compraTable').innerHTML = filtered.map(oc=>{
     const items = oc.items?.length||0;
-    return `<tr>
-      <td>${fmtDate(oc.createdAt)}</td>
-      <td><strong>${oc.supplierName}</strong></td>
-      <td>${items} item${items!==1?'s':''}</td>
-      <td><strong>${fmt(oc.total)}</strong></td>
-      <td><span class="pill ${oc.status}">${oc.status}</span></td>
-      <td style="text-align:right"><button class="btn small" onclick="openCompraDetail('${oc.id}')">Ver detalle</button></td>
-    </tr>`;
+    return '<tr>'+
+      '<td>'+fmtDate(oc.createdAt)+'</td>'+
+      '<td><strong>'+oc.supplierName+'</strong></td>'+
+      '<td>'+items+' item'+(items!==1?'s':'')+'</td>'+
+      '<td><strong>'+fmt(oc.total)+'</strong></td>'+
+      '<td><span class="pill '+oc.status+'">'+oc.status+'</span></td>'+
+      '<td style="text-align:right"><button class="btn small" onclick="openCompraDetail(\''+oc.id+'\')">Ver detalle</button></td>'+
+    '</tr>';
   }).join('') || '<tr><td colspan="6" class="empty">Sin órdenes de compra</td></tr>';
 }
 
@@ -1619,20 +2087,48 @@ function renderSlider(){
     return;
   }
   container.innerHTML = state.slides.map(sl=>{
-    const linkText = sl.linkUrl ? sl.linkUrl : (sl.linkCategory ? `Categoría: ${sl.linkCategory}` : 'Todos los productos');
-    return `<div class="slide-card ${sl.active===false?'inactive':''}">
-      <span class="slide-order">#${sl.order}</span>
-      <img src="${sl.imageUrl}" alt="${sl.title||''}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22175%22><rect fill=%22%23273449%22 width=%22400%22 height=%22175%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2216%22>Sin imagen</text></svg>'" />
-      <div class="slide-info">
-        <h4>${sl.title||'(Sin título)'}</h4>
-        <div class="slide-meta">${sl.subtitle||''}</div>
-        <div class="slide-meta" style="margin-top:4px">🔗 ${linkText} ${sl.active===false?'· <span style="color:var(--warning)">Inactivo</span>':''}</div>
-      </div>
-      <div class="slide-actions">
-        <button class="btn small secondary" onclick="openSlideModal('${sl.id}')">Editar</button>
-        <button class="btn small danger" onclick="deleteSlide('${sl.id}')">Eliminar</button>
-      </div>
-    </div>`;
+    let linkText = '';
+    if(sl.linkUrl) linkText = sl.linkUrl;
+    else if(sl.linkOfferCat){
+      const oc = state.offerCategories.find(x=>x.id===sl.linkOfferCat);
+      linkText = '🏷️ Oferta: '+(oc?oc.name:'(eliminada)');
+    }else if(sl.linkCategory) linkText = 'Categoría: '+sl.linkCategory;
+    else linkText = 'Todos los productos';
+    const safeImgUrl = (sl.imageUrl||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    return '<div class="slide-card '+(sl.active===false?'inactive':'')+'">'+
+      '<span class="slide-order">#'+sl.order+'</span>'+
+      '<img src="'+safeImgUrl+'" alt="'+(sl.title||'')+'" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22175%22><rect fill=%22%23273449%22 width=%22400%22 height=%22175%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2394a3b8%22 font-size=%2216%22>Sin imagen</text></svg>\'" />'+
+      '<div class="slide-info">'+
+        '<h4>'+(sl.title||'(Sin título)')+'</h4>'+
+        '<div class="slide-meta">'+(sl.subtitle||'')+'</div>'+
+        '<div class="slide-meta" style="margin-top:4px">🔗 '+linkText+(sl.active===false?' · <span style="color:var(--warning)">Inactivo</span>':'')+'</div>'+
+      '</div>'+
+      '<div class="slide-actions">'+
+        '<button class="btn small secondary" onclick="openSlideModal(\''+sl.id+'\')">Editar</button>'+
+        '<button class="btn small danger" onclick="deleteSlide(\''+sl.id+'\')">Eliminar</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderOfertas(){
+  const container = document.getElementById('offerCatCards');
+  if(state.offerCategories.length===0){
+    container.innerHTML = '<div class="empty" style="grid-column:1/-1">Sin subcategorías de ofertas. Usá "+ Nueva subcategoría" para crear una.</div>';
+    return;
+  }
+  container.innerHTML = state.offerCategories.map(oc=>{
+    const prodCount = (oc.productIds||[]).length;
+    const activeBadge = oc.active===false ? '<span class="pill low">Inactiva</span>' : '<span class="pill ok">Activa</span>';
+    return '<div class="offer-card">'+
+      '<h4>🏷️ '+oc.name+'</h4>'+
+      '<div class="offer-desc">'+(oc.description||'Sin descripción')+'</div>'+
+      '<div class="offer-meta">'+prodCount+' producto'+(prodCount!==1?'s':'')+' · Orden: '+oc.order+' · '+activeBadge+'</div>'+
+      '<div class="offer-actions">'+
+        '<button class="btn small secondary" onclick="openOfferCatModal(\''+oc.id+'\')">Editar</button>'+
+        '<button class="btn small danger" onclick="deleteOfferCategory(\''+oc.id+'\')">Eliminar</button>'+
+      '</div>'+
+    '</div>';
   }).join('');
 }
 
@@ -1641,13 +2137,13 @@ function renderAlertas(){
   document.getElementById('alertTable').innerHTML = lows.map(p=>{
     const s = stockStatus(p);
     const sugerido = Math.max(p.min*2 - p.stock, 0);
-    return `<tr>
-      <td><code>${p.sku}</code></td><td>${p.name}</td>
-      <td><strong style="color:var(--warning)">${p.stock}</strong></td><td>${p.min}</td>
-      <td>${sugerido} u.</td>
-      <td><span class="pill ${s.pill}">${s.label}</span></td>
-      <td style="text-align:right"><button class="btn small" onclick="openMovForProduct('${p.id}')">+ Reponer</button></td>
-    </tr>`;
+    return '<tr>'+
+      '<td><code>'+p.sku+'</code></td><td>'+p.name+'</td>'+
+      '<td><strong style="color:var(--warning)">'+p.stock+'</strong></td><td>'+p.min+'</td>'+
+      '<td>'+sugerido+' u.</td>'+
+      '<td><span class="pill '+s.pill+'">'+s.label+'</span></td>'+
+      '<td style="text-align:right"><button class="btn small" onclick="openMovForProduct(\''+p.id+'\')">+ Reponer</button></td>'+
+    '</tr>';
   }).join('') || '<tr><td colspan="7" class="empty">🎉 Todo el stock está OK</td></tr>';
 }
 
@@ -1676,25 +2172,25 @@ function renderReportes(){
     const co = u*p.cost;
     return {p, u, ing, co, mg:ing-co, pct:ing?((ing-co)/ing*100):0};
   }).filter(x=>x.u>0).sort((a,b)=>b.mg-a.mg);
-  document.getElementById('reportTable').innerHTML = det.map(x=>`
-    <tr><td>${x.p.name}</td><td>${x.u}</td><td>${fmt(x.ing)}</td><td>${fmt(x.co)}</td><td><strong>${fmt(x.mg)}</strong></td><td>${x.pct.toFixed(1)}%</td></tr>
-  `).join('') || '<tr><td colspan="6" class="empty">Sin ventas</td></tr>';
+  document.getElementById('reportTable').innerHTML = det.map(x=>
+    '<tr><td>'+x.p.name+'</td><td>'+x.u+'</td><td>'+fmt(x.ing)+'</td><td>'+fmt(x.co)+'</td><td><strong>'+fmt(x.mg)+'</strong></td><td>'+x.pct.toFixed(1)+'%</td></tr>'
+  ).join('') || '<tr><td colspan="6" class="empty">Sin ventas</td></tr>';
   const top5 = det.slice(0,5);
   const mx = Math.max(...top5.map(x=>x.mg),1);
-  document.getElementById('marginChart').innerHTML = top5.length?top5.map(x=>`
-    <div class="bar-row"><div class="name">${x.p.name}</div><div class="bar"><div style="width:${x.mg/mx*100}%;background:var(--success)"></div></div><div class="val">${fmt(x.mg)}</div></div>
-  `).join(''):'<div class="empty">Sin datos</div>';
+  document.getElementById('marginChart').innerHTML = top5.length?top5.map(x=>
+    '<div class="bar-row"><div class="name">'+x.p.name+'</div><div class="bar"><div style="width:'+x.mg/mx*100+'%;background:var(--success)"></div></div><div class="val">'+fmt(x.mg)+'</div></div>'
+  ).join(''):'<div class="empty">Sin datos</div>';
   const byCat = {};
   state.products.forEach(p=>{byCat[p.cat]=(byCat[p.cat]||0)+p.cost*p.stock});
   const catArr = Object.entries(byCat).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
   const catMax = Math.max(...catArr.map(x=>x.v),1);
-  document.getElementById('categoryChart').innerHTML = catArr.length?catArr.map(x=>`
-    <div class="bar-row"><div class="name">${x.k}</div><div class="bar"><div style="width:${x.v/catMax*100}%;background:var(--accent)"></div></div><div class="val">${fmt(x.v)}</div></div>
-  `).join(''):'<div class="empty">Sin productos</div>';
+  document.getElementById('categoryChart').innerHTML = catArr.length?catArr.map(x=>
+    '<div class="bar-row"><div class="name">'+x.k+'</div><div class="bar"><div style="width:'+x.v/catMax*100+'%;background:var(--accent)"></div></div><div class="val">'+fmt(x.v)+'</div></div>'
+  ).join(''):'<div class="empty">Sin productos</div>';
 }
 
 function render(){
-  renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderClientes(); renderProveedores(); renderCompras(); renderSlider(); renderAlertas(); renderReportes();
+  renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderVentas(); renderClientes(); renderProveedores(); renderCompras(); renderSlider(); renderOfertas(); renderAlertas(); renderReportes();
 }
 
 ['searchProd','filterCat','filterStock'].forEach(id=>document.getElementById(id).addEventListener('input',renderCatalogo));
@@ -1702,6 +2198,7 @@ function render(){
 document.getElementById('filterOrderStatus').addEventListener('change',renderPedidos);
 document.getElementById('searchClient').addEventListener('input',renderClientes);
 document.getElementById('filterCompraStatus').addEventListener('change',renderCompras);
+['ventaDateFrom','ventaDateTo','ventaChannel','ventaStatus'].forEach(id=>document.getElementById(id).addEventListener('change',renderVentas));
 
 // Expose for inline onclick
 window.openModal = openModal;
@@ -1715,6 +2212,9 @@ window.confirmOrder = confirmOrder;
 window.changeOrderStatus = changeOrderStatus;
 window.saveConfig = saveConfig;
 window.updateImgPreview = updateImgPreview;
+window.addProductImageUrl = addProductImageUrl;
+window.uploadAndAddProductImage = uploadAndAddProductImage;
+window.removeProductImage = removeProductImage;
 window.saveSupplier = saveSupplier;
 window.deleteSupplier = deleteSupplier;
 window.openCompraModal = openCompraModal;
@@ -1726,11 +2226,16 @@ window.receiveCompra = receiveCompra;
 window.changeCompraStatus = changeCompraStatus;
 window.generateRemitoPDF = generateRemitoPDF;
 window.generateOCPDF = generateOCPDF;
+window.generateVentaPDF = generateVentaPDF;
 window.openClientModal = openClientModal;
 window.openSlideModal = openSlideModal;
 window.updateSlidePreview = updateSlidePreview;
 window.saveSlide = saveSlide;
 window.deleteSlide = deleteSlide;
+window.openOfferCatModal = openOfferCatModal;
+window.saveOfferCategory = saveOfferCategory;
+window.deleteOfferCategory = deleteOfferCategory;
+window.openVentaModal = openVentaModal;
 
 document.getElementById('seedBtn').addEventListener('click', seedDemo);
 document.getElementById('exportBtn').addEventListener('click', exportJSON);
