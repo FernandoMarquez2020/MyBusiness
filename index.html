@@ -159,7 +159,7 @@
 <aside id="sidebarEl" style="display:none">
   <div style="padding:4px 0 8px">
     <svg viewBox="0 0 520 200" style="width:100%;max-width:210px;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">
-      <rect width="520" height="200" rx="16" fill="#0f1729"/>
+      <!-- fondo transparente -->
       <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
       <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
       <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
@@ -877,6 +877,9 @@ onAuthStateChanged(auth, async (user) => {
   try{
     const userDoc = await getDoc(doc(db, 'users', user.uid));
     let profile = userDoc.exists() ? userDoc.data() : {};
+    // Compatibilidad: login puede guardar 'rol'/'nombre' o 'role'/'name'
+    if(profile.rol && !profile.role) profile.role = profile.rol;
+    if(profile.nombre && !profile.name) profile.name = profile.nombre;
     const role = profile.role || '';
 
     if(role === 'cajero'){ window.location.href = 'caja.html'; return; }

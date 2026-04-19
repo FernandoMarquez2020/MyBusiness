@@ -237,7 +237,7 @@
   <div class="card">
     <div class="logo-wrap">
       <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg">
-        <rect width="520" height="200" rx="16" fill="#0f1729"/>
+        <!-- fondo transparente -->
         <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
         <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
@@ -393,20 +393,21 @@
 
     async function createUserProfile(uid, data) {
       await setDoc(doc(db, 'users', uid), {
-        nombre: data.nombre || '',
+        name: data.nombre || data.name || '',
         email: data.email || '',
-        rol: data.rol || 'cliente',
-        creadoEn: serverTimestamp()
+        role: data.rol || data.role || 'cliente',
+        active: true,
+        createdAt: serverTimestamp()
       });
     }
 
     function showWelcomeAndRedirect(profile) {
-      const role = profile.rol || 'cliente';
+      const role = profile.role || profile.rol || 'cliente';
       const overlay = document.createElement('div');
       overlay.className = 'welcome-overlay';
       overlay.innerHTML = `
         <div class="welcome-box">
-          <h2>Bienvenido, ${profile.nombre || 'Usuario'}</h2>
+          <h2>Bienvenido, ${profile.name || profile.nombre || 'Usuario'}</h2>
           <p>Has iniciado sesion correctamente</p>
           <span class="role-badge" style="background:${roleColors[role] || '#334155'}; color:#fff;">${roleLabels[role] || role}</span>
           <p style="font-size:.8rem; color:#64748b; margin-top:.5rem;">Redirigiendo...</p>
@@ -421,9 +422,9 @@
         await createUserProfile(user.uid, {
           nombre: user.displayName || '',
           email: user.email || '',
-          rol: 'cliente'
+          role: 'cliente'
         });
-        profile = { nombre: user.displayName || '', email: user.email, rol: 'cliente' };
+        profile = { name: user.displayName || '', email: user.email, role: 'cliente' };
       }
       showWelcomeAndRedirect(profile);
     }
@@ -433,7 +434,7 @@
       if (user) {
         let profile = await getUserProfile(user.uid);
         if (profile) {
-          window.location.href = roleRedirect(profile.rol);
+          window.location.href = roleRedirect(profile.role || profile.rol);
         }
       }
     });
@@ -576,16 +577,31 @@
       for (const u of demoUsers) {
         try {
           logSeed(`Creando ${u.nombre} (${u.email})...`);
-          const cred = await createUserWithEmailAndPassword(auth, u.email, u.pass);
-          await createUserProfile(cred.user.uid, { nombre: u.nombre, email: u.email, rol: u.rol });
-          await signOut(auth);
-          logSeed(`  ${u.nombre} creado con rol "${u.rol}"`, '#86efac');
-        } catch (err) {
-          if (err.code === 'auth/email-already-in-use') {
-            logSeed(`  ${u.email} ya existe, omitiendo.`, '#fcd34d');
-          } else {
-            logSeed(`  Error: ${err.message}`, '#fca5a5');
+          let uid = null;
+          try {
+            const cred = await createUserWithEmailAndPassword(auth, u.email, u.pass);
+            uid = cred.user.uid;
+          } catch (createErr) {
+            if (createErr.code === 'auth/email-already-in-use') {
+              logSeed(`  ${u.email} ya existe en Auth, actualizando perfil...`, '#fcd34d');
+              try {
+                const loginCred = await signInWithEmailAndPassword(auth, u.email, u.pass);
+                uid = loginCred.user.uid;
+              } catch(loginErr) {
+                logSeed(`  No se pudo loguear ${u.email}: ${loginErr.message}`, '#fca5a5');
+                continue;
+              }
+            } else {
+              throw createErr;
+            }
           }
+          if (uid) {
+            await createUserProfile(uid, { nombre: u.nombre, email: u.email, role: u.rol });
+            logSeed(`  ${u.nombre} listo con rol "${u.rol}"`, '#86efac');
+          }
+          await signOut(auth);
+        } catch (err) {
+          logSeed(`  Error: ${err.message}`, '#fca5a5');
         }
       }
 
