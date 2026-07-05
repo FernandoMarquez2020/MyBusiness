@@ -1,288 +1,858 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="crt">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>CAJA — Terminal POS</title>
-<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  :root{
-    --green:#33ff33;--green-dim:#1a8c1a;--green-bright:#66ff66;
-    --amber:#ffb000;--red:#ff3333;--cyan:#33ffff;
-    --bg:#0a0a0a;--panel:#111;--border:#1a3a1a;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;overflow:hidden}
-  body{
-    font-family:'VT323',monospace;
-    background:var(--bg);color:var(--green);
-    font-size:18px;line-height:1.4;
-    display:flex;flex-direction:column;
-    text-shadow:0 0 6px rgba(51,255,51,.4);
-  }
-  /* Scanlines */
-  body::before{
-    content:'';position:fixed;inset:0;
-    background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0px,rgba(0,0,0,.12) 1px,transparent 1px,transparent 3px);
-    pointer-events:none;z-index:9999;
-  }
-  /* CRT vignette */
-  body::after{
-    content:'';position:fixed;inset:0;
-    background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.65) 100%);
-    pointer-events:none;z-index:9998;
-  }
-  @keyframes flicker{0%,100%{opacity:1}50%{opacity:.985}}
-  body{animation:flicker 4s infinite}
+/* ═══════════════════════════════════════════
+   THEME: CRT (default)
+═══════════════════════════════════════════ */
+[data-theme="crt"] {
+  --green:#33ff33;--green-dim:#1a8c1a;--green-bright:#66ff66;
+  --amber:#ffb000;--red:#ff3333;--cyan:#33ffff;
+  --bg:#0a0a0a;--panel:#111;--border:#1a3a1a;
+  --font-main:'VT323',monospace;
+  --font-size-base:18px;
+  --header-bg:#111;
+  --header-border:2px solid #1a8c1a;
+  --input-bg:#000;
+  --input-border:#1a8c1a;
+  --input-color:#66ff66;
+  --btn-radius:0;
+  --card-radius:0;
+  --body-color:#33ff33;
+  --body-bg:#0a0a0a;
+  --result-hover:#0d2a0d;
+  --ticket-row-hover:#0d1a0d;
+  --ticket-row-border:#0d1a0d;
+  --total-color:#66ff66;
+  --total-size:32px;
+  --keys-bg:#111;
+  --section-label-color:#1a8c1a;
+  --scrollbar-thumb:#1a8c1a;
+  --modal-bg:#0a0a0a;
+  --modal-border-color:#33ff33;
+  --pay-modal-border:#ffb000;
+  --cobrar-border:#33ff33;
+  --cobrar-color:#33ff33;
+  --cobrar-hover:rgba(51,255,51,.08);
+  --cancel-border:#ff3333;
+  --cancel-color:#ff3333;
+  --nuevo-border:#ffb000;
+  --nuevo-color:#ffb000;
+  --sec-border:#1a8c1a;
+  --sec-color:#1a8c1a;
+  --sku-color:#33ffff;
+  --price-color:#ffb000;
+  --sub-color:#ffb000;
+  --del-color:#ff3333;
+  --status-ok:#33ff33;
+  --status-err:#ff3333;
+  --clock-color:#ffb000;
+  --shadow-text:0 0 6px rgba(51,255,51,.4);
+  --toast-bg:#000;
+  --toast-border:#33ff33;
+  --receipt-border:#33ff33;
+  --pay-method-hover:rgba(51,255,51,.05);
+  --pay-method-selected:rgba(51,255,51,.1);
+  --pay-total-color:#66ff66;
+  --header-title-size:22px;
+}
 
-  /* Header */
-  .pos-header{
-    background:var(--panel);border-bottom:2px solid var(--green-dim);
-    padding:8px 20px;display:flex;justify-content:space-between;align-items:center;
-    flex-shrink:0;
-  }
-  .pos-header .store{font-size:22px;font-weight:700;letter-spacing:2px;color:var(--green-bright)}
-  .pos-header .meta{color:var(--green-dim);font-size:16px;text-align:right}
-  .pos-header .meta .clock{color:var(--amber);font-size:20px}
-  .pos-header .status{color:var(--green-dim);font-size:14px}
-  .pos-header .status.ok{color:var(--green)}
-  .pos-header .status.err{color:var(--red)}
+/* ═══════════════════════════════════════════
+   THEME: APPLE / LIGHT
+═══════════════════════════════════════════ */
+[data-theme="apple"] {
+  --green:#34C759;--green-dim:#30b350;--green-bright:#248a3d;
+  --amber:#FF9F0A;--red:#FF3B30;--cyan:#32ADE6;
+  --bg:#F5F5F7;--panel:#FFFFFF;--border:#D2D2D7;
+  --font-main:'Inter',system-ui,-apple-system,sans-serif;
+  --font-size-base:14px;
+  --header-bg:#FFFFFF;
+  --header-border:0.5px solid #D2D2D7;
+  --input-bg:#F5F5F7;
+  --input-border:#D2D2D7;
+  --input-color:#1D1D1F;
+  --btn-radius:10px;
+  --card-radius:12px;
+  --body-color:#1D1D1F;
+  --body-bg:#F5F5F7;
+  --result-hover:#F5F5F7;
+  --ticket-row-hover:#F5F5F7;
+  --ticket-row-border:#F0F0F0;
+  --total-color:#1D1D1F;
+  --total-size:28px;
+  --keys-bg:#FFFFFF;
+  --section-label-color:#6E6E73;
+  --scrollbar-thumb:#C7C7CC;
+  --modal-bg:#FFFFFF;
+  --modal-border-color:#D2D2D7;
+  --pay-modal-border:#D2D2D7;
+  --cobrar-border:transparent;
+  --cobrar-color:#FFFFFF;
+  --cobrar-hover:#28a745;
+  --cancel-border:transparent;
+  --cancel-color:#FFFFFF;
+  --nuevo-border:transparent;
+  --nuevo-color:#FFFFFF;
+  --sec-border:#D2D2D7;
+  --sec-color:#6E6E73;
+  --sku-color:#6E6E73;
+  --price-color:#1D1D1F;
+  --sub-color:#1D1D1F;
+  --del-color:#FF3B30;
+  --status-ok:#34C759;
+  --status-err:#FF3B30;
+  --clock-color:#6E6E73;
+  --shadow-text:none;
+  --toast-bg:#1D1D1F;
+  --toast-border:transparent;
+  --receipt-border:#D2D2D7;
+  --pay-method-hover:#F5F5F7;
+  --pay-method-selected:#EAF9EE;
+  --pay-total-color:#1D1D1F;
+  --pay-method-selected-border:#34C759;
+  --header-title-size:16px;
+}
 
-  /* Main layout */
-  .pos-body{flex:1;display:flex;overflow:hidden;min-height:0}
+/* ═══════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
 
-  /* Left: search & results */
-  .pos-left{width:340px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-  .search-box{padding:12px;border-bottom:1px solid var(--border)}
-  .search-box label{display:block;color:var(--green-dim);font-size:14px;margin-bottom:4px}
-  .search-box input{
-    width:100%;background:#000;border:1px solid var(--green-dim);color:var(--green-bright);
-    font-family:'VT323',monospace;font-size:20px;padding:8px 10px;
-    caret-color:var(--green);outline:none;
-  }
-  .search-box input:focus{border-color:var(--green);box-shadow:0 0 8px rgba(51,255,51,.2)}
-  .search-box input::placeholder{color:var(--green-dim);opacity:.5}
-  .results{flex:1;overflow-y:auto;padding:4px 0}
-  .result-item{
-    padding:8px 12px;cursor:pointer;border-bottom:1px solid #0d1a0d;
-    display:flex;justify-content:space-between;align-items:center;
-    transition:background .1s;
-  }
-  .result-item:hover,.result-item.selected{background:#0d2a0d}
-  .result-item .sku{color:var(--cyan);font-size:14px;min-width:80px}
-  .result-item .name{flex:1;margin:0 10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-  .result-item .price{color:var(--amber);text-align:right;min-width:70px}
-  .result-item .stock-info{font-size:13px;color:var(--green-dim);min-width:50px;text-align:right}
-  .result-item .stock-info.out{color:var(--red)}
-  .no-results{padding:20px;text-align:center;color:var(--green-dim);font-size:16px}
+body{
+  font-family:var(--font-main);
+  background:var(--body-bg);
+  color:var(--body-color);
+  font-size:var(--font-size-base);
+  line-height:1.4;
+  display:flex;flex-direction:column;
+  text-shadow:var(--shadow-text);
+  transition:background .25s,color .25s;
+}
 
-  /* Center: ticket */
-  .pos-center{flex:1;display:flex;flex-direction:column;min-width:0}
-  .ticket-header{
-    padding:10px 16px;border-bottom:2px solid var(--green-dim);
-    display:flex;justify-content:space-between;align-items:center;
-  }
-  .ticket-header h2{font-size:20px;color:var(--green-bright);letter-spacing:1px}
-  .ticket-header .ticket-num{color:var(--amber)}
-  .ticket-cols{
-    padding:4px 16px;border-bottom:1px solid var(--border);color:var(--green-dim);font-size:14px;
-    display:grid;grid-template-columns:70px 1fr 50px 80px 90px 40px;gap:4px;
-  }
-  .ticket-items{flex:1;overflow-y:auto;padding:0}
-  .ticket-row{
-    padding:6px 16px;border-bottom:1px solid #0d1a0d;
-    display:grid;grid-template-columns:70px 1fr 50px 80px 90px 40px;gap:4px;
-    align-items:center;font-size:17px;
-  }
-  .ticket-row:hover{background:#0d1a0d}
-  .ticket-row .sku{color:var(--cyan);font-size:14px}
-  .ticket-row .qty{text-align:center;color:var(--green-bright);font-size:19px}
-  .ticket-row .price{text-align:right;color:var(--green-dim)}
-  .ticket-row .sub{text-align:right;color:var(--amber);font-weight:700}
-  .ticket-row .del{color:var(--red);cursor:pointer;text-align:center;font-size:16px;opacity:.6;transition:opacity .15s}
-  .ticket-row .del:hover{opacity:1}
-  .ticket-empty{padding:40px;text-align:center;color:var(--green-dim);font-size:16px}
+/* CRT effects — solo en tema CRT */
+[data-theme="crt"] body::before{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0px,rgba(0,0,0,.12) 1px,transparent 1px,transparent 3px);
+  pointer-events:none;z-index:9999;
+}
+[data-theme="crt"] body::after{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.65) 100%);
+  pointer-events:none;z-index:9998;
+}
+@keyframes flicker{0%,100%{opacity:1}50%{opacity:.985}}
+[data-theme="crt"] body{animation:flicker 4s infinite}
 
-  /* Totals bar */
-  .totals-bar{
-    border-top:2px solid var(--green-dim);padding:12px 16px;
-    display:flex;justify-content:space-between;align-items:center;flex-shrink:0;
-    background:var(--panel);
-  }
-  .totals-bar .items-count{color:var(--green-dim);font-size:16px}
-  .totals-bar .total{font-size:32px;color:var(--green-bright);letter-spacing:2px;text-shadow:0 0 12px rgba(51,255,51,.5)}
+/* ═══════════════════════════════════════════
+   THEME TOGGLE BUTTON
+═══════════════════════════════════════════ */
+.theme-toggle{
+  display:flex;align-items:center;gap:6px;
+  cursor:pointer;
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:4px 10px 4px 8px;
+  font-family:var(--font-main);
+  font-size:13px;
+  color:var(--section-label-color);
+  background:transparent;
+  transition:all .2s;
+  flex-shrink:0;
+}
+[data-theme="crt"] .theme-toggle{
+  border-color:var(--green-dim);
+  color:var(--green-dim);
+  font-size:14px;
+  border-radius:0;
+}
+.theme-toggle:hover{
+  border-color:var(--green);
+  color:var(--green);
+}
+[data-theme="apple"] .theme-toggle:hover{
+  background:#F5F5F7;
+  border-color:#6E6E73;
+  color:#1D1D1F;
+}
+.theme-toggle .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  display:inline-block;
+  transition:background .2s;
+}
+[data-theme="apple"] .theme-toggle .dot{
+  background:#34C759;
+}
 
-  /* Right: customer + actions */
-  .pos-right{width:280px;border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-  .customer-box{padding:12px;border-bottom:1px solid var(--border);flex-shrink:0}
-  .customer-box h3{color:var(--green-dim);font-size:14px;margin-bottom:8px;letter-spacing:1px}
-  .customer-box input{
-    width:100%;background:#000;border:1px solid var(--border);color:var(--green);
-    font-family:'VT323',monospace;font-size:16px;padding:6px 8px;margin-bottom:8px;outline:none;
-  }
-  .customer-box input:focus{border-color:var(--green-dim)}
-  .customer-box input::placeholder{color:#1a3a1a}
-  .customer-box .customer-found{color:var(--cyan);font-size:14px;padding:4px 0}
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.pos-header{
+  background:var(--header-bg);
+  border-bottom:var(--header-border);
+  padding:8px 20px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;
+  transition:background .25s,border-color .25s;
+}
+[data-theme="apple"] .pos-header{
+  padding:10px 20px;
+  box-shadow:0 1px 0 rgba(0,0,0,.08);
+}
+.pos-header .store{
+  font-size:var(--header-title-size);
+  font-weight:700;letter-spacing:2px;
+  color:var(--green-bright);
+}
+[data-theme="apple"] .pos-header .store{letter-spacing:0}
+.pos-header .meta{color:var(--section-label-color);font-size:13px;text-align:right}
+[data-theme="crt"] .pos-header .meta{font-size:16px}
+.pos-header .meta .clock{color:var(--clock-color);font-size:16px;font-weight:500}
+[data-theme="crt"] .pos-header .meta .clock{font-size:20px}
+.pos-header .status{color:var(--section-label-color);font-size:12px}
+[data-theme="crt"] .pos-header .status{font-size:14px}
+.pos-header .status.ok{color:var(--status-ok)}
+.pos-header .status.err{color:var(--status-err)}
 
-  /* Actions */
-  .actions-box{flex:1;padding:12px;display:flex;flex-direction:column;gap:8px}
-  .pos-btn{
-    padding:14px 12px;border:2px solid;border-radius:0;
-    font-family:'VT323',monospace;font-size:20px;cursor:pointer;
-    text-align:center;transition:all .15s;letter-spacing:1px;
-    display:flex;align-items:center;justify-content:center;gap:8px;
-    background:transparent;
-  }
-  .pos-btn:hover{filter:brightness(1.3)}
-  .pos-btn:active{transform:scale(.97)}
-  .pos-btn:disabled{opacity:.3;cursor:not-allowed}
-  .pos-btn.cobrar{border-color:var(--green);color:var(--green);font-size:26px;padding:18px}
-  .pos-btn.cobrar:hover{background:rgba(51,255,51,.08);box-shadow:0 0 20px rgba(51,255,51,.15)}
-  .pos-btn.cancel{border-color:var(--red);color:var(--red)}
-  .pos-btn.cancel:hover{background:rgba(255,51,51,.06)}
-  .pos-btn.nuevo{border-color:var(--amber);color:var(--amber)}
-  .pos-btn.nuevo:hover{background:rgba(255,176,0,.06)}
-  .pos-btn.sec{border-color:var(--green-dim);color:var(--green-dim);font-size:16px;padding:10px}
+.header-left{display:flex;flex-direction:column;gap:2px}
+.header-center{display:flex;align-items:center;gap:12px}
 
-  /* Keys hint */
-  .keys-bar{
-    flex-shrink:0;padding:6px 16px;border-top:1px solid var(--border);
-    display:flex;gap:20px;font-size:14px;color:var(--green-dim);
-    background:var(--panel);
-  }
-  .keys-bar kbd{
-    background:#1a2a1a;border:1px solid var(--green-dim);padding:1px 6px;
-    border-radius:2px;color:var(--green);font-size:13px;
-  }
+/* ═══════════════════════════════════════════
+   BODY LAYOUT
+═══════════════════════════════════════════ */
+.pos-body{flex:1;display:flex;overflow:hidden;min-height:0}
 
-  /* Quantity modal */
-  .qty-modal{
-    position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;
-    display:none;align-items:center;justify-content:center;
-  }
-  .qty-modal.show{display:flex}
-  .qty-modal-box{
-    background:var(--bg);border:2px solid var(--green);padding:24px;
-    min-width:320px;text-align:center;
-    box-shadow:0 0 40px rgba(51,255,51,.15);
-  }
-  .qty-modal-box h3{color:var(--green-bright);font-size:22px;margin-bottom:6px}
-  .qty-modal-box .prod-name{color:var(--cyan);font-size:18px;margin-bottom:16px}
-  .qty-modal-box input{
-    width:120px;background:#000;border:2px solid var(--green);color:var(--green-bright);
-    font-family:'VT323',monospace;font-size:36px;text-align:center;padding:8px;outline:none;
-  }
-  .qty-modal-box input:focus{box-shadow:0 0 12px rgba(51,255,51,.3)}
-  .qty-modal-box .qty-actions{margin-top:16px;display:flex;gap:10px;justify-content:center}
-  .qty-modal-box .qty-actions button{
-    font-family:'VT323',monospace;font-size:18px;padding:8px 20px;
-    border:1px solid;cursor:pointer;background:transparent;
-  }
-  .qty-modal-box .qty-actions .ok{border-color:var(--green);color:var(--green)}
-  .qty-modal-box .qty-actions .ok:hover{background:rgba(51,255,51,.1)}
-  .qty-modal-box .qty-actions .no{border-color:var(--red);color:var(--red)}
-  .qty-modal-box .qty-actions .no:hover{background:rgba(255,51,51,.1)}
+/* LEFT */
+.pos-left{
+  width:340px;
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+  background:var(--panel);
+  transition:background .25s,border-color .25s;
+}
+[data-theme="apple"] .pos-left{
+  background:var(--body-bg);
+  border-right:0.5px solid var(--border);
+}
+.search-box{padding:12px;border-bottom:1px solid var(--border)}
+[data-theme="apple"] .search-box{padding:10px 12px}
+.search-box label{
+  display:block;
+  color:var(--section-label-color);
+  font-size:12px;
+  margin-bottom:4px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+[data-theme="crt"] .search-box label{font-size:14px;letter-spacing:0;text-transform:none}
+.search-box input{
+  width:100%;
+  background:var(--input-bg);
+  border:1px solid var(--input-border);
+  color:var(--input-color);
+  font-family:var(--font-main);
+  font-size:16px;
+  padding:8px 10px;
+  caret-color:var(--green);
+  outline:none;
+  border-radius:var(--btn-radius);
+  transition:border-color .15s;
+}
+[data-theme="apple"] .search-box input{
+  font-size:14px;
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background:#FFFFFF;
+}
+.search-box input:focus{
+  border-color:var(--green);
+  box-shadow:0 0 8px rgba(51,255,51,.2);
+}
+[data-theme="apple"] .search-box input:focus{
+  border-color:#34C759;
+  box-shadow:0 0 0 3px rgba(52,199,89,.15);
+}
+.search-box input::placeholder{color:var(--section-label-color);opacity:.6}
 
-  /* Payment modal */
-  .pay-modal{
-    position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:150;
-    display:none;align-items:center;justify-content:center;
-  }
-  .pay-modal.show{display:flex}
-  .pay-modal-box{
-    background:var(--bg);border:2px solid var(--amber);padding:28px;
-    min-width:400px;max-width:460px;width:100%;
-    box-shadow:0 0 60px rgba(255,176,0,.15);
-  }
-  .pay-modal-box h3{color:var(--amber);font-size:24px;margin-bottom:6px;text-align:center;letter-spacing:2px}
-  .pay-modal-box .pay-total{color:var(--green-bright);font-size:36px;text-align:center;margin:12px 0 20px;text-shadow:0 0 12px rgba(51,255,51,.5)}
-  .pay-modal-box .pay-summary{color:var(--green-dim);font-size:15px;text-align:center;margin-bottom:16px}
-  .pay-methods{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
-  .pay-method{
-    padding:14px 16px;border:2px solid var(--border);cursor:pointer;
-    font-family:'VT323',monospace;font-size:20px;color:var(--green);
-    display:flex;align-items:center;gap:12px;transition:all .15s;
-    background:transparent;text-align:left;
-  }
-  .pay-method:hover{border-color:var(--green);background:rgba(51,255,51,.05)}
-  .pay-method.selected{border-color:var(--green-bright);background:rgba(51,255,51,.1);color:var(--green-bright)}
-  .pay-method .pay-icon{font-size:24px;min-width:30px;text-align:center}
-  .pay-method .pay-label{flex:1}
-  .pay-method .pay-key{color:var(--green-dim);font-size:14px}
-  .pay-confirm-row{display:flex;gap:10px;justify-content:center;margin-top:8px}
-  .pay-confirm-row button{
-    font-family:'VT323',monospace;font-size:20px;padding:12px 28px;
-    border:2px solid;cursor:pointer;background:transparent;letter-spacing:1px;
-  }
-  .pay-confirm-row .pay-ok{border-color:var(--green);color:var(--green)}
-  .pay-confirm-row .pay-ok:hover{background:rgba(51,255,51,.1);box-shadow:0 0 16px rgba(51,255,51,.15)}
-  .pay-confirm-row .pay-ok:disabled{opacity:.3;cursor:not-allowed}
-  .pay-confirm-row .pay-cancel{border-color:var(--red);color:var(--red)}
-  .pay-confirm-row .pay-cancel:hover{background:rgba(255,51,51,.06)}
+.results{flex:1;overflow-y:auto;padding:4px 0}
+[data-theme="apple"] .results{padding:6px}
 
-  /* Receipt overlay */
-  .receipt-overlay{
-    position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;
-    display:none;align-items:center;justify-content:center;
-  }
-  .receipt-overlay.show{display:flex}
-  .receipt{
-    background:#000;border:2px solid var(--green);padding:32px;max-width:420px;width:100%;
-    font-size:17px;box-shadow:0 0 60px rgba(51,255,51,.1);max-height:90vh;overflow-y:auto;
-  }
-  .receipt pre{white-space:pre-wrap;color:var(--green);line-height:1.5}
-  .receipt .receipt-actions{margin-top:20px;display:flex;gap:10px;justify-content:center}
-  .receipt .receipt-actions button{
-    font-family:'VT323',monospace;font-size:18px;padding:10px 24px;
-    border:1px solid var(--green);color:var(--green);background:transparent;cursor:pointer;
-  }
-  .receipt .receipt-actions button:hover{background:rgba(51,255,51,.1)}
+.result-item{
+  padding:8px 12px;cursor:pointer;
+  border-bottom:1px solid var(--ticket-row-border);
+  display:flex;justify-content:space-between;align-items:center;
+  transition:background .1s;
+}
+[data-theme="apple"] .result-item{
+  border-bottom:none;
+  border-radius:8px;
+  margin-bottom:2px;
+  padding:8px 10px;
+}
+.result-item:hover,.result-item.selected{background:var(--result-hover)}
+.result-item .sku{color:var(--sku-color);font-size:12px;min-width:70px}
+[data-theme="crt"] .result-item .sku{font-size:14px}
+.result-item .name{flex:1;margin:0 8px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:14px}
+[data-theme="crt"] .result-item .name{font-size:inherit}
+.result-item .price{color:var(--price-color);font-size:13px;text-align:right;min-width:65px;font-weight:500}
+[data-theme="crt"] .result-item .price{color:var(--amber);font-size:inherit}
+.result-item .stock-info{font-size:11px;color:var(--section-label-color);min-width:48px;text-align:right}
+[data-theme="crt"] .result-item .stock-info{font-size:13px}
+.result-item .stock-info.out{color:var(--red)}
+.no-results{padding:20px;text-align:center;color:var(--section-label-color);font-size:14px}
+[data-theme="crt"] .no-results{font-size:16px}
 
-  /* Sync indicator */
-  .sync-bar{
-    position:fixed;top:0;left:0;right:0;height:3px;z-index:9997;
-    background:transparent;transition:background .3s;
-  }
-  .sync-bar.syncing{
-    background:linear-gradient(90deg,transparent,var(--amber),transparent);
-    animation:syncPulse 1.5s infinite;
-  }
-  .sync-bar.ok{background:var(--green);transition:background .2s}
-  .sync-bar.error{background:var(--red)}
-  @keyframes syncPulse{0%,100%{opacity:.3}50%{opacity:1}}
+/* CENTER */
+.pos-center{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--panel);transition:background .25s}
+[data-theme="apple"] .pos-center{background:#FFFFFF}
 
-  /* Toast */
-  .crt-toast{
-    position:fixed;bottom:50px;left:50%;transform:translateX(-50%);z-index:300;
-    background:#000;border:1px solid var(--green);color:var(--green);
-    padding:10px 24px;font-family:'VT323',monospace;font-size:18px;
-    box-shadow:0 0 16px rgba(51,255,51,.2);
-    animation:toastFade .3s ease;
-  }
-  .crt-toast.error{border-color:var(--red);color:var(--red);box-shadow:0 0 16px rgba(255,51,51,.2)}
-  @keyframes toastFade{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+.ticket-header{
+  padding:10px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+[data-theme="crt"] .ticket-header{border-bottom:2px solid var(--green-dim)}
+.ticket-header h2{
+  font-size:16px;font-weight:600;
+  color:var(--body-color);
+  letter-spacing:0;
+}
+[data-theme="crt"] .ticket-header h2{font-size:20px;color:var(--green-bright);letter-spacing:1px}
+.ticket-header .ticket-num{color:var(--section-label-color);font-size:12px}
+[data-theme="crt"] .ticket-header .ticket-num{color:var(--amber);font-size:inherit}
 
-  /* Scrollbar */
-  ::-webkit-scrollbar{width:6px}
-  ::-webkit-scrollbar-track{background:var(--bg)}
-  ::-webkit-scrollbar-thumb{background:var(--green-dim);border-radius:0}
+.ticket-cols{
+  padding:4px 16px;
+  border-bottom:1px solid var(--border);
+  color:var(--section-label-color);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  display:grid;
+  grid-template-columns:70px 1fr 50px 80px 90px 40px;
+  gap:4px;
+}
+[data-theme="crt"] .ticket-cols{font-size:14px;letter-spacing:0;text-transform:none}
 
-  /* Responsive */
-  @media(max-width:900px){
-    .pos-body{flex-direction:column}
-    .pos-left,.pos-right{width:100%;border:none;border-bottom:1px solid var(--border)}
-    .pos-left{max-height:200px}
-    .pos-right{flex-direction:row;flex-wrap:wrap}
-    .customer-box,.actions-box{flex:1;min-width:200px}
-  }
+.ticket-items{flex:1;overflow-y:auto;padding:0}
+.ticket-row{
+  padding:8px 16px;
+  border-bottom:1px solid var(--ticket-row-border);
+  display:grid;
+  grid-template-columns:70px 1fr 50px 80px 90px 40px;
+  gap:4px;
+  align-items:center;
+  font-size:14px;
+  transition:background .1s;
+}
+[data-theme="crt"] .ticket-row{font-size:17px;padding:6px 16px}
+.ticket-row:hover{background:var(--ticket-row-hover)}
+.ticket-row .sku{color:var(--sku-color);font-size:11px;font-weight:500}
+[data-theme="crt"] .ticket-row .sku{font-size:14px}
+.ticket-row .qty{text-align:center;color:var(--body-color);font-weight:600}
+[data-theme="crt"] .ticket-row .qty{color:var(--green-bright);font-size:19px}
+.ticket-row .price{text-align:right;color:var(--section-label-color);font-size:13px}
+[data-theme="crt"] .ticket-row .price{color:var(--green-dim);font-size:inherit}
+.ticket-row .sub{text-align:right;color:var(--sub-color);font-weight:600;font-size:14px}
+[data-theme="crt"] .ticket-row .sub{color:var(--amber);font-size:inherit}
+.ticket-row .del{
+  color:var(--del-color);
+  cursor:pointer;
+  text-align:center;
+  font-size:14px;
+  opacity:.4;
+  transition:opacity .15s;
+}
+.ticket-row .del:hover{opacity:1}
+.ticket-empty{
+  padding:40px;
+  text-align:center;
+  color:var(--section-label-color);
+  font-size:13px;
+}
+[data-theme="crt"] .ticket-empty{font-size:16px}
 
-  @media print{
-    body::before,body::after,.pos-header,.pos-left,.pos-right,.keys-bar,.receipt-actions,.qty-modal,.pay-modal,.sync-bar{display:none!important}
-    .pos-body,.pos-center{display:block!important;overflow:visible!important}
-    body{background:#fff;color:#000;text-shadow:none;animation:none}
-    .ticket-row,.ticket-cols,.totals-bar{color:#000!important;border-color:#ccc!important}
-    .ticket-row .sku,.ticket-row .sub,.totals-bar .total{color:#000!important;text-shadow:none}
-  }
+/* TOTALS */
+.totals-bar{
+  border-top:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;
+  background:var(--panel);
+  transition:background .25s,border-color .25s;
+}
+[data-theme="crt"] .totals-bar{border-top:2px solid var(--green-dim)}
+[data-theme="apple"] .totals-bar{background:#FFFFFF}
+.totals-bar .items-count{color:var(--section-label-color);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+[data-theme="crt"] .totals-bar .items-count{font-size:16px;text-transform:none;letter-spacing:0}
+.totals-bar .total{
+  font-size:var(--total-size);
+  color:var(--total-color);
+  font-weight:600;
+  letter-spacing:-1px;
+}
+[data-theme="crt"] .totals-bar .total{letter-spacing:2px;text-shadow:0 0 12px rgba(51,255,51,.5);font-weight:400}
+
+/* RIGHT */
+.pos-right{
+  width:280px;
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;
+  background:var(--panel);
+  transition:background .25s,border-color .25s;
+}
+[data-theme="apple"] .pos-right{background:#FFFFFF;border-left:0.5px solid var(--border)}
+
+.customer-box{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.customer-box h3{
+  color:var(--section-label-color);
+  font-size:11px;
+  margin-bottom:8px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  font-weight:500;
+}
+[data-theme="crt"] .customer-box h3{font-size:14px;letter-spacing:1px;font-weight:400}
+.customer-box input{
+  width:100%;
+  background:var(--input-bg);
+  border:1px solid var(--border);
+  color:var(--input-color);
+  font-family:var(--font-main);
+  font-size:13px;
+  padding:6px 10px;
+  margin-bottom:6px;
+  outline:none;
+  border-radius:6px;
+  transition:border-color .15s;
+}
+[data-theme="crt"] .customer-box input{background:#000;font-size:16px;padding:6px 8px;border-radius:0;border-color:var(--border)}
+.customer-box input:focus{border-color:var(--green)}
+[data-theme="apple"] .customer-box input:focus{border-color:#34C759;box-shadow:0 0 0 3px rgba(52,199,89,.1)}
+.customer-box input::placeholder{color:var(--section-label-color);opacity:.5}
+[data-theme="crt"] .customer-box input::placeholder{color:#1a3a1a;opacity:1}
+.customer-box .customer-found{color:var(--cyan);font-size:12px;padding:4px 0}
+[data-theme="crt"] .customer-box .customer-found{font-size:14px}
+
+/* ACTIONS */
+.actions-box{flex:1;padding:12px;display:flex;flex-direction:column;gap:6px}
+[data-theme="crt"] .actions-box{gap:8px}
+.pos-btn{
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:var(--btn-radius);
+  font-family:var(--font-main);
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  text-align:center;
+  transition:all .15s;
+  letter-spacing:0;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:transparent;
+}
+[data-theme="crt"] .pos-btn{
+  padding:14px 12px;
+  border-width:2px;
+  font-size:20px;
+  letter-spacing:1px;
+  border-radius:0;
+}
+.pos-btn:hover{filter:brightness(1.05)}
+[data-theme="crt"] .pos-btn:hover{filter:brightness(1.3)}
+.pos-btn:active{transform:scale(.98)}
+.pos-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* COBRAR */
+.pos-btn.cobrar{
+  background:#34C759;
+  border-color:transparent;
+  color:#FFFFFF;
+  font-size:15px;
+  font-weight:600;
+  padding:16px;
+  border-radius:12px;
+  letter-spacing:-.2px;
+}
+[data-theme="crt"] .pos-btn.cobrar{
+  background:transparent;
+  border-color:var(--green);
+  color:var(--green);
+  font-size:26px;
+  padding:18px;
+  border-radius:0;
+  border-width:2px;
+}
+[data-theme="apple"] .pos-btn.cobrar:hover{background:#28a745}
+[data-theme="crt"] .pos-btn.cobrar:hover{background:rgba(51,255,51,.08);box-shadow:0 0 20px rgba(51,255,51,.15)}
+
+.pos-btn.cancel{
+  background:#FF3B30;
+  border-color:transparent;
+  color:#FFFFFF;
+  border-radius:10px;
+}
+[data-theme="crt"] .pos-btn.cancel{background:transparent;border-color:var(--red);color:var(--red);border-width:2px;border-radius:0}
+[data-theme="apple"] .pos-btn.cancel:hover{background:#e0352b}
+[data-theme="crt"] .pos-btn.cancel:hover{background:rgba(255,51,51,.06)}
+
+.pos-btn.nuevo{
+  background:#FF9F0A;
+  border-color:transparent;
+  color:#FFFFFF;
+  border-radius:10px;
+}
+[data-theme="crt"] .pos-btn.nuevo{background:transparent;border-color:var(--amber);color:var(--amber);border-width:2px;border-radius:0}
+[data-theme="apple"] .pos-btn.nuevo:hover{background:#e08f00}
+[data-theme="crt"] .pos-btn.nuevo:hover{background:rgba(255,176,0,.06)}
+
+.pos-btn.sec{
+  border-color:var(--sec-border);
+  color:var(--sec-color);
+  background:transparent;
+  font-size:13px;
+  padding:9px;
+}
+[data-theme="crt"] .pos-btn.sec{border-color:var(--green-dim);color:var(--green-dim);font-size:16px;padding:10px;border-width:2px}
+[data-theme="apple"] .pos-btn.sec:hover{background:var(--body-bg)}
+
+.pos-btn.sec.danger{color:#FF3B30;border-color:#FF3B30}
+[data-theme="crt"] .pos-btn.sec.danger{color:var(--red);border-color:var(--red)}
+
+/* KEYS BAR */
+.keys-bar{
+  flex-shrink:0;
+  padding:5px 16px;
+  border-top:1px solid var(--border);
+  display:flex;gap:16px;
+  font-size:11px;
+  color:var(--section-label-color);
+  background:var(--keys-bg);
+  transition:background .25s,border-color .25s;
+  flex-wrap:wrap;
+}
+[data-theme="crt"] .keys-bar{font-size:14px;gap:20px;padding:6px 16px}
+.keys-bar kbd{
+  background:var(--body-bg);
+  border:1px solid var(--border);
+  padding:1px 5px;
+  border-radius:4px;
+  color:var(--body-color);
+  font-size:11px;
+  font-family:monospace;
+}
+[data-theme="crt"] .keys-bar kbd{
+  background:#1a2a1a;
+  border-color:var(--green-dim);
+  color:var(--green);
+  font-size:13px;
+  border-radius:2px;
+}
+
+/* ═══════════════════════════════════════════
+   QTY MODAL
+═══════════════════════════════════════════ */
+.qty-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;
+  display:none;align-items:center;justify-content:center;
+}
+[data-theme="crt"] .qty-modal{background:rgba(0,0,0,.85)}
+.qty-modal.show{display:flex}
+.qty-modal-box{
+  background:var(--modal-bg);
+  border:1px solid var(--modal-border-color);
+  padding:24px;
+  min-width:320px;text-align:center;
+  border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+}
+[data-theme="crt"] .qty-modal-box{border:2px solid var(--green);border-radius:0;box-shadow:0 0 40px rgba(51,255,51,.15)}
+.qty-modal-box h3{
+  color:var(--body-color);
+  font-size:16px;font-weight:600;
+  margin-bottom:6px;
+}
+[data-theme="crt"] .qty-modal-box h3{color:var(--green-bright);font-size:22px;font-weight:400}
+.qty-modal-box .prod-name{
+  color:var(--section-label-color);
+  font-size:13px;
+  margin-bottom:16px;
+}
+[data-theme="crt"] .qty-modal-box .prod-name{color:var(--cyan);font-size:18px}
+.qty-modal-box input{
+  width:120px;
+  background:var(--input-bg);
+  border:1px solid var(--border);
+  color:var(--input-color);
+  font-family:var(--font-main);
+  font-size:32px;
+  text-align:center;
+  padding:8px;
+  outline:none;
+  border-radius:8px;
+  font-weight:500;
+  transition:border-color .15s;
+}
+[data-theme="crt"] .qty-modal-box input{
+  background:#000;
+  border:2px solid var(--green);
+  color:var(--green-bright);
+  font-size:36px;
+  border-radius:0;
+}
+[data-theme="apple"] .qty-modal-box input:focus{
+  border-color:#34C759;
+  box-shadow:0 0 0 3px rgba(52,199,89,.15);
+}
+[data-theme="crt"] .qty-modal-box input:focus{box-shadow:0 0 12px rgba(51,255,51,.3)}
+.qty-modal-box .qty-actions{margin-top:16px;display:flex;gap:8px;justify-content:center}
+.qty-modal-box .qty-actions button{
+  font-family:var(--font-main);
+  font-size:14px;font-weight:500;
+  padding:10px 24px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  transition:filter .15s;
+}
+[data-theme="crt"] .qty-modal-box .qty-actions button{
+  font-size:18px;
+  padding:8px 20px;
+  border-radius:0;
+  background:transparent;
+  border:1px solid;
+}
+.qty-modal-box .qty-actions .ok{
+  background:#34C759;
+  color:#FFFFFF;
+}
+[data-theme="crt"] .qty-modal-box .qty-actions .ok{background:transparent;border-color:var(--green);color:var(--green)}
+[data-theme="crt"] .qty-modal-box .qty-actions .ok:hover{background:rgba(51,255,51,.1)}
+[data-theme="apple"] .qty-modal-box .qty-actions .ok:hover{filter:brightness(1.1)}
+.qty-modal-box .qty-actions .no{
+  background:var(--body-bg);
+  color:var(--section-label-color);
+  border:1px solid var(--border);
+}
+[data-theme="crt"] .qty-modal-box .qty-actions .no{background:transparent;border-color:var(--red);color:var(--red)}
+[data-theme="crt"] .qty-modal-box .qty-actions .no:hover{background:rgba(255,51,51,.1)}
+[data-theme="apple"] .qty-modal-box .qty-actions .no:hover{background:var(--border)}
+
+/* ═══════════════════════════════════════════
+   PAYMENT MODAL
+═══════════════════════════════════════════ */
+.pay-modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;
+  display:none;align-items:center;justify-content:center;
+}
+[data-theme="crt"] .pay-modal{background:rgba(0,0,0,.9)}
+.pay-modal.show{display:flex}
+.pay-modal-box{
+  background:var(--modal-bg);
+  border:1px solid var(--modal-border-color);
+  padding:28px;
+  min-width:400px;max-width:460px;width:100%;
+  border-radius:20px;
+  box-shadow:0 24px 80px rgba(0,0,0,.15);
+}
+[data-theme="crt"] .pay-modal-box{border:2px solid var(--amber);border-radius:0;box-shadow:0 0 60px rgba(255,176,0,.15)}
+.pay-modal-box h3{
+  color:var(--body-color);
+  font-size:17px;font-weight:600;
+  margin-bottom:6px;text-align:center;
+}
+[data-theme="crt"] .pay-modal-box h3{color:var(--amber);font-size:24px;font-weight:400;letter-spacing:2px}
+.pay-modal-box .pay-total{
+  color:var(--pay-total-color);
+  font-size:40px;font-weight:600;
+  text-align:center;
+  margin:12px 0 4px;
+  letter-spacing:-2px;
+}
+[data-theme="crt"] .pay-modal-box .pay-total{color:var(--green-bright);font-size:36px;font-weight:400;text-shadow:0 0 12px rgba(51,255,51,.5);letter-spacing:0;margin:12px 0 20px}
+.pay-modal-box .pay-summary{
+  color:var(--section-label-color);
+  font-size:12px;
+  text-align:center;
+  margin-bottom:20px;
+}
+[data-theme="crt"] .pay-modal-box .pay-summary{font-size:15px}
+.pay-methods{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+[data-theme="crt"] .pay-methods{gap:8px}
+.pay-method{
+  padding:12px 14px;
+  border:1px solid var(--border);
+  cursor:pointer;
+  font-family:var(--font-main);
+  font-size:14px;
+  color:var(--body-color);
+  display:flex;align-items:center;gap:10px;
+  transition:all .15s;
+  background:transparent;
+  text-align:left;
+  border-radius:10px;
+}
+[data-theme="crt"] .pay-method{
+  font-size:20px;
+  padding:14px 16px;
+  border:2px solid var(--border);
+  border-radius:0;
+  color:var(--green);
+}
+.pay-method:hover{background:var(--pay-method-hover)}
+[data-theme="apple"] .pay-method:hover{border-color:#C7C7CC}
+[data-theme="crt"] .pay-method:hover{border-color:var(--green)}
+.pay-method.selected{
+  border-color:#34C759;
+  background:var(--pay-method-selected);
+}
+[data-theme="crt"] .pay-method.selected{border-color:var(--green-bright);background:rgba(51,255,51,.1);color:var(--green-bright)}
+.pay-method .pay-icon{font-size:20px;min-width:28px;text-align:center}
+.pay-method .pay-label{flex:1;font-weight:500}
+[data-theme="crt"] .pay-method .pay-label{font-weight:400}
+.pay-method .pay-key{color:var(--section-label-color);font-size:11px}
+[data-theme="crt"] .pay-method .pay-key{font-size:14px}
+.pay-confirm-row{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.pay-confirm-row button{
+  font-family:var(--font-main);
+  font-size:14px;font-weight:500;
+  padding:12px 28px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  transition:filter .15s;
+}
+[data-theme="crt"] .pay-confirm-row button{
+  font-size:20px;
+  border-radius:0;
+  border:2px solid;
+  background:transparent;
+  letter-spacing:1px;
+}
+.pay-confirm-row .pay-ok{background:#34C759;color:#FFFFFF}
+[data-theme="crt"] .pay-confirm-row .pay-ok{background:transparent;border-color:var(--green);color:var(--green)}
+.pay-confirm-row .pay-ok:disabled{opacity:.3;cursor:not-allowed}
+[data-theme="apple"] .pay-confirm-row .pay-ok:hover:not(:disabled){filter:brightness(1.1)}
+[data-theme="crt"] .pay-confirm-row .pay-ok:hover:not(:disabled){background:rgba(51,255,51,.1);box-shadow:0 0 16px rgba(51,255,51,.15)}
+.pay-confirm-row .pay-cancel{background:var(--body-bg);color:var(--section-label-color);border:1px solid var(--border)}
+[data-theme="crt"] .pay-confirm-row .pay-cancel{background:transparent;border-color:var(--red);color:var(--red)}
+[data-theme="apple"] .pay-confirm-row .pay-cancel:hover{background:var(--border)}
+[data-theme="crt"] .pay-confirm-row .pay-cancel:hover{background:rgba(255,51,51,.06)}
+
+/* ═══════════════════════════════════════════
+   RECEIPT
+═══════════════════════════════════════════ */
+.receipt-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;
+  display:none;align-items:center;justify-content:center;
+}
+[data-theme="crt"] .receipt-overlay{background:rgba(0,0,0,.9)}
+.receipt-overlay.show{display:flex}
+.receipt{
+  background:var(--modal-bg);
+  border:1px solid var(--receipt-border);
+  padding:32px;max-width:420px;width:100%;
+  font-size:14px;
+  max-height:90vh;overflow-y:auto;
+  border-radius:16px;
+  box-shadow:0 24px 80px rgba(0,0,0,.2);
+}
+[data-theme="crt"] .receipt{background:#000;border:2px solid var(--green);border-radius:0;box-shadow:0 0 60px rgba(51,255,51,.1)}
+.receipt pre{white-space:pre-wrap;color:var(--body-color);line-height:1.5;font-size:13px;font-family:'SF Mono','Fira Mono',monospace}
+[data-theme="crt"] .receipt pre{color:var(--green);font-size:17px;font-family:'VT323',monospace}
+.receipt .receipt-actions{margin-top:20px;display:flex;gap:8px;justify-content:center}
+.receipt .receipt-actions button{
+  font-family:var(--font-main);
+  font-size:14px;font-weight:500;
+  padding:10px 20px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  color:var(--body-color);
+  background:var(--body-bg);
+  cursor:pointer;
+  transition:filter .15s;
+}
+[data-theme="crt"] .receipt .receipt-actions button{
+  background:transparent;
+  border:1px solid var(--green);
+  color:var(--green);
+  font-size:18px;
+  border-radius:0;
+}
+[data-theme="apple"] .receipt .receipt-actions button:hover{filter:brightness(.95)}
+[data-theme="crt"] .receipt .receipt-actions button:hover{background:rgba(51,255,51,.1)}
+
+/* ═══════════════════════════════════════════
+   SYNC BAR
+═══════════════════════════════════════════ */
+.sync-bar{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:9997;
+  background:transparent;transition:background .3s;
+}
+.sync-bar.syncing{
+  background:linear-gradient(90deg,transparent,var(--amber),transparent);
+  animation:syncPulse 1.5s infinite;
+}
+.sync-bar.ok{background:var(--green)}
+.sync-bar.error{background:var(--red)}
+@keyframes syncPulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+.crt-toast{
+  position:fixed;bottom:50px;left:50%;transform:translateX(-50%);z-index:300;
+  background:var(--toast-bg);
+  border:1px solid var(--toast-border);
+  color:var(--green);
+  padding:10px 20px;
+  font-family:var(--font-main);
+  font-size:14px;
+  border-radius:20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);
+  animation:toastFade .3s ease;
+  white-space:nowrap;
+}
+[data-theme="crt"] .crt-toast{
+  border-radius:0;
+  font-size:18px;
+  box-shadow:0 0 16px rgba(51,255,51,.2);
+}
+.crt-toast.error{border-color:var(--red);color:var(--red)}
+[data-theme="apple"] .crt-toast{color:#FFFFFF}
+[data-theme="apple"] .crt-toast.error{background:#FF3B30;border-color:transparent;color:#FFFFFF}
+@keyframes toastFade{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border-radius:4px}
+
+/* Responsive */
+@media(max-width:900px){
+  .pos-body{flex-direction:column}
+  .pos-left,.pos-right{width:100%;border:none;border-bottom:1px solid var(--border)}
+  .pos-left{max-height:200px}
+  .pos-right{flex-direction:row;flex-wrap:wrap}
+  .customer-box,.actions-box{flex:1;min-width:200px}
+}
+
+@media print{
+  body::before,body::after,.pos-header,.pos-left,.pos-right,.keys-bar,.receipt-actions,.qty-modal,.pay-modal,.sync-bar,.theme-toggle{display:none!important}
+  .pos-body,.pos-center{display:block!important;overflow:visible!important}
+  body{background:#fff;color:#000;text-shadow:none;animation:none}
+  .ticket-row,.ticket-cols,.totals-bar{color:#000!important;border-color:#ccc!important}
+}
 </style>
 </head>
 <body>
@@ -291,30 +861,34 @@
   VERIFICANDO ACCESO...
 </div>
 
-<!-- SYNC BAR -->
 <div class="sync-bar" id="syncBar"></div>
 
 <!-- HEADER -->
 <div class="pos-header">
-  <div>
+  <div class="header-left">
     <div class="store" id="storeName">
-  <svg viewBox="0 0 520 200" style="height:32px;width:auto;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">
-    <!-- fondo transparente -->
-    <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
-    <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
-    <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
-    <circle cx="152" cy="82" r="16" fill="#c0392b"/>
-    <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
-    <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
-    <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
-  </svg>
-</div>
+      <svg viewBox="0 0 520 200" style="height:32px;width:auto;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">
+        <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
+        <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+        <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
+        <circle cx="152" cy="82" r="16" fill="#c0392b"/>
+        <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
+        <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
+        <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
+      </svg>
+    </div>
     <div class="status" id="connStatus">CONECTANDO...</div>
   </div>
-  <div class="meta">
-    <div>PUNTO DE VENTA · CAJA</div>
-    <div class="clock" id="clock">--:--:--</div>
+  <div class="header-center">
+    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+      <span class="dot"></span>
+      <span id="themeLabel">MODO APPLE</span>
+    </button>
+    <div class="meta">
+      <div>PUNTO DE VENTA · CAJA</div>
+      <div class="clock" id="clock">--:--:--</div>
+    </div>
   </div>
 </div>
 
@@ -324,7 +898,7 @@
   <!-- LEFT: Search -->
   <div class="pos-left">
     <div class="search-box">
-      <label>▸ BUSCAR PRODUCTO (SKU / NOMBRE)</label>
+      <label>Buscar producto — SKU / Nombre</label>
       <input type="text" id="searchInput" placeholder="Escanear o escribir..." autofocus />
     </div>
     <div class="results" id="searchResults">
@@ -335,17 +909,17 @@
   <!-- CENTER: Ticket -->
   <div class="pos-center">
     <div class="ticket-header">
-      <h2>▸ TICKET</h2>
+      <h2>Ticket de venta</h2>
       <span class="ticket-num" id="ticketNum">#---</span>
     </div>
     <div class="ticket-cols">
-      <span>SKU</span><span>PRODUCTO</span><span>CANT</span><span>PRECIO</span><span>SUBTOTAL</span><span></span>
+      <span>SKU</span><span>Producto</span><span>Cant</span><span>Precio</span><span>Subtotal</span><span></span>
     </div>
     <div class="ticket-items" id="ticketItems">
-      <div class="ticket-empty">[ TICKET VACÍO — Buscá un producto para agregar ]</div>
+      <div class="ticket-empty">Ticket vacío — buscá un producto para agregar</div>
     </div>
     <div class="totals-bar">
-      <div class="items-count">ITEMS: <span id="itemCount">0</span></div>
+      <div class="items-count">Items: <span id="itemCount">0</span></div>
       <div class="total" id="ticketTotal">$0</div>
     </div>
   </div>
@@ -353,7 +927,7 @@
   <!-- RIGHT: Customer + Actions -->
   <div class="pos-right">
     <div class="customer-box">
-      <h3>▸ CLIENTE (OPCIONAL)</h3>
+      <h3>Cliente — opcional</h3>
       <input type="text" id="custName" placeholder="Nombre..." />
       <input type="tel" id="custPhone" placeholder="Teléfono..." />
       <input type="text" id="custAddress" placeholder="Dirección..." />
@@ -361,20 +935,20 @@
     </div>
     <div class="actions-box">
       <button class="pos-btn cobrar" id="btnCobrar" disabled onclick="cobrar()">
-        ▸ COBRAR [F2]
+        Cobrar [F2]
       </button>
       <button class="pos-btn cancel" onclick="cancelTicket()">
-        CANCELAR [F3]
+        Cancelar [F3]
       </button>
       <button class="pos-btn nuevo" onclick="nuevoTicket()">
-        NUEVO TICKET [F4]
+        Nuevo ticket [F4]
       </button>
       <div style="flex:1"></div>
       <a class="pos-btn sec" href="index.html" style="text-decoration:none;text-align:center">
-        ← VOLVER AL BACK
+        ← Volver al back
       </a>
-      <button class="pos-btn sec" id="btnSalir" style="border-color:var(--red);color:var(--red)">
-        SALIR
+      <button class="pos-btn sec danger" id="btnSalir">
+        Cerrar sesión
       </button>
     </div>
   </div>
@@ -388,20 +962,20 @@
   <span><kbd>F4</kbd> Nuevo ticket</span>
   <span><kbd>ESC</kbd> Cerrar</span>
   <span><kbd>↑↓</kbd> Navegar</span>
-  <span><kbd>ENTER</kbd> Agregar</span>
-  <span><kbd>1-4</kbd> Forma de pago</span>
+  <span><kbd>Enter</kbd> Agregar</span>
+  <span><kbd>1–4</kbd> Forma de pago</span>
 </div>
 
 <!-- QTY MODAL -->
 <div class="qty-modal" id="qtyModal">
   <div class="qty-modal-box">
-    <h3>CANTIDAD</h3>
+    <h3>Cantidad</h3>
     <div class="prod-name" id="qtyProdName">---</div>
     <input type="number" id="qtyInput" min="1" value="1" />
-    <div style="font-size:14px;color:var(--green-dim);margin-top:6px" id="qtyStock"></div>
+    <div style="font-size:12px;color:var(--section-label-color);margin-top:6px" id="qtyStock"></div>
     <div class="qty-actions">
-      <button class="no" onclick="closeQtyModal()">CANCELAR</button>
-      <button class="ok" onclick="confirmQty()">AGREGAR [ENTER]</button>
+      <button class="no" onclick="closeQtyModal()">Cancelar</button>
+      <button class="ok" onclick="confirmQty()">Agregar [Enter]</button>
     </div>
   </div>
 </div>
@@ -409,34 +983,34 @@
 <!-- PAYMENT MODAL -->
 <div class="pay-modal" id="payModal">
   <div class="pay-modal-box">
-    <h3>▸ FORMA DE PAGO</h3>
+    <h3>Forma de pago</h3>
     <div class="pay-total" id="payTotal">$0</div>
     <div class="pay-summary" id="paySummary"></div>
     <div class="pay-methods" id="payMethods">
       <button class="pay-method" data-method="efectivo" onclick="selectPayMethod('efectivo')">
         <span class="pay-icon">💵</span>
-        <span class="pay-label">CONTADO EFECTIVO</span>
+        <span class="pay-label">Contado efectivo</span>
         <span class="pay-key"><kbd>1</kbd></span>
       </button>
       <button class="pay-method" data-method="tarjeta" onclick="selectPayMethod('tarjeta')">
         <span class="pay-icon">💳</span>
-        <span class="pay-label">TARJETA</span>
+        <span class="pay-label">Tarjeta</span>
         <span class="pay-key"><kbd>2</kbd></span>
       </button>
       <button class="pay-method" data-method="remito" onclick="selectPayMethod('remito')">
         <span class="pay-icon">📄</span>
-        <span class="pay-label">REMITO / CUENTA CORRIENTE</span>
+        <span class="pay-label">Remito / Cuenta corriente</span>
         <span class="pay-key"><kbd>3</kbd></span>
       </button>
       <button class="pay-method" data-method="otro" onclick="selectPayMethod('otro')">
         <span class="pay-icon">🔄</span>
-        <span class="pay-label">OTRO</span>
+        <span class="pay-label">Otro</span>
         <span class="pay-key"><kbd>4</kbd></span>
       </button>
     </div>
     <div class="pay-confirm-row">
-      <button class="pay-cancel" onclick="closePayModal()">CANCELAR [ESC]</button>
-      <button class="pay-ok" id="btnConfirmPay" disabled onclick="confirmPayment()">▸ CONFIRMAR VENTA [ENTER]</button>
+      <button class="pay-cancel" onclick="closePayModal()">Cancelar [ESC]</button>
+      <button class="pay-ok" id="btnConfirmPay" disabled onclick="confirmPayment()">Confirmar venta [Enter]</button>
     </div>
   </div>
 </div>
@@ -446,8 +1020,8 @@
   <div class="receipt">
     <pre id="receiptText"></pre>
     <div class="receipt-actions">
-      <button onclick="printReceipt()">🖨️ IMPRIMIR</button>
-      <button onclick="closeReceipt()">CERRAR [ESC]</button>
+      <button onclick="printReceipt()">🖨 Imprimir</button>
+      <button onclick="closeReceipt()">Cerrar [ESC]</button>
     </div>
   </div>
 </div>
@@ -456,7 +1030,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getFirestore, collection, doc, addDoc, updateDoc, getDocs, getDoc,
-  onSnapshot, runTransaction, serverTimestamp, query, orderBy, where
+  onSnapshot, runTransaction, serverTimestamp, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -479,42 +1053,58 @@ const customersCol = collection(db, "customers");
 const configRef = doc(db, "config", "store");
 const auth = getAuth(app);
 
+// ===== THEME TOGGLE =====
+const THEME_KEY = 'caja_theme';
+const html = document.documentElement;
+const themeToggle = document.getElementById('themeToggle');
+const themeLabel = document.getElementById('themeLabel');
+
+function applyTheme(theme) {
+  html.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY, theme);
+  if (theme === 'crt') {
+    themeLabel.textContent = 'MODO APPLE';
+  } else {
+    themeLabel.textContent = 'MODO CRT';
+  }
+}
+
+// Restaurar tema guardado
+const savedTheme = localStorage.getItem(THEME_KEY) || 'crt';
+applyTheme(savedTheme);
+
+themeToggle.addEventListener('click', () => {
+  const current = html.getAttribute('data-theme');
+  applyTheme(current === 'crt' ? 'apple' : 'crt');
+});
+
 // ===== AUTH CHECK =====
 const authReady = new Promise((resolve) => {
   onAuthStateChanged(auth, async (user) => {
     const overlay = document.getElementById('authOverlay');
-    if (!user) {
-      window.location.href = 'login.html';
-      return;
-    }
+    if (!user) { window.location.href = 'login.html'; return; }
     try {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (!userDoc.exists()) {
-        window.location.href = 'login.html';
-        return;
-      }
+      if (!userDoc.exists()) { window.location.href = 'login.html'; return; }
       const profile = userDoc.data();
-      // Compatibilidad: login puede guardar 'rol'/'nombre' o 'role'/'name'
       if(profile.rol && !profile.role) profile.role = profile.rol;
       if(profile.nombre && !profile.name) profile.name = profile.nombre;
       if (profile.role !== 'cajero' && profile.role !== 'admin_it') {
-        if(overlay) overlay.textContent = 'ACCESO DENEGADO \u2014 Solo personal de caja';
+        if(overlay) overlay.textContent = 'ACCESO DENEGADO — Solo personal de caja';
         setTimeout(() => { window.location.href = 'login.html'; }, 2000);
         return;
       }
-      // Authorized — show username in header
-      document.getElementById('connStatus').textContent = `CAJERO: ${profile.name || user.email}`;
+      document.getElementById('connStatus').textContent = `Cajero: ${profile.name || user.email}`;
       if(overlay) overlay.remove();
       resolve(profile);
     } catch(e) {
       console.error(e);
-      if(overlay) overlay.textContent = 'ERROR DE AUTENTICACI\u00d3N';
+      if(overlay) overlay.textContent = 'ERROR DE AUTENTICACIÓN';
       setTimeout(() => { window.location.href = 'login.html'; }, 2000);
     }
   });
 });
 
-// SALIR button
 document.getElementById('btnSalir').addEventListener('click', async () => {
   await signOut(auth);
   window.location.href = 'login.html';
@@ -574,19 +1164,15 @@ function setSyncError(){ document.getElementById('syncBar').className = 'sync-ba
 // ===== FIRESTORE =====
 onSnapshot(productsCol, snap => {
   products = snap.docs.map(d=>({id:d.id,...d.data()}));
-  document.getElementById('connStatus').textContent = '● CONECTADO — ' + products.length + ' productos';
+  document.getElementById('connStatus').textContent = `● Conectado — ${products.length} productos`;
   document.getElementById('connStatus').className = 'status ok';
   refreshSearch();
 }, err => {
-  document.getElementById('connStatus').textContent = '✖ ERROR: ' + err.code;
+  document.getElementById('connStatus').textContent = '✖ Error: ' + err.code;
   document.getElementById('connStatus').className = 'status err';
 });
 onSnapshot(configRef, snap => {
-  if(snap.exists()){
-    config = snap.data();
-    // storeName is now an SVG logo — do not overwrite
-    // document.getElementById('storeName').textContent = (config.storeName||'MYBUSINESS').toUpperCase();
-  }
+  if(snap.exists()) config = snap.data();
 });
 
 // ===== SEARCH =====
@@ -610,7 +1196,7 @@ function refreshSearch(){
     p.cat?.toLowerCase().includes(q)
   ).slice(0,15);
   if(matches.length===0){
-    searchResults.innerHTML = '<div class="no-results">SIN RESULTADOS PARA "'+q.toUpperCase()+'"</div>';
+    searchResults.innerHTML = `<div class="no-results">Sin resultados para "${q.toUpperCase()}"</div>`;
     return;
   }
   searchResults.innerHTML = matches.map((p,i)=>{
@@ -619,7 +1205,7 @@ function refreshSearch(){
       <span class="sku">${p.sku}</span>
       <span class="name">${p.name}</span>
       <span class="price">${fmt(p.price)}</span>
-      <span class="stock-info ${stockCls}">${p.stock<=0?'SIN STOCK':p.stock+'u'}</span>
+      <span class="stock-info ${stockCls}">${p.stock<=0?'Sin stock':p.stock+'u'}</span>
     </div>`;
   }).join('');
   searchResults.querySelectorAll('.result-item').forEach(el=>{
@@ -640,26 +1226,16 @@ function getFilteredResults(){
 // ===== KEYBOARD NAV =====
 searchInput.addEventListener('keydown', e => {
   const results = getFilteredResults();
-  if(e.key === 'ArrowDown'){
+  if(e.key === 'ArrowDown'){ e.preventDefault(); selectedResultIdx = Math.min(selectedResultIdx+1, results.length-1); refreshSearch(); }
+  else if(e.key === 'ArrowUp'){ e.preventDefault(); selectedResultIdx = Math.max(selectedResultIdx-1, -1); refreshSearch(); }
+  else if(e.key === 'Enter'){
     e.preventDefault();
-    selectedResultIdx = Math.min(selectedResultIdx+1, results.length-1);
-    refreshSearch();
-  } else if(e.key === 'ArrowUp'){
-    e.preventDefault();
-    selectedResultIdx = Math.max(selectedResultIdx-1, -1);
-    refreshSearch();
-  } else if(e.key === 'Enter'){
-    e.preventDefault();
-    if(selectedResultIdx>=0 && results[selectedResultIdx]){
-      addProductFromSearch(results[selectedResultIdx].id);
-    } else if(results.length===1){
-      addProductFromSearch(results[0].id);
-    }
+    if(selectedResultIdx>=0 && results[selectedResultIdx]) addProductFromSearch(results[selectedResultIdx].id);
+    else if(results.length===1) addProductFromSearch(results[0].id);
   }
 });
 
 document.addEventListener('keydown', e => {
-  // Don't capture if inside inputs (except designated shortcuts)
   const payOpen = document.getElementById('payModal').classList.contains('show');
   const qtyOpen = document.getElementById('qtyModal').classList.contains('show');
   const receiptOpen = document.getElementById('receiptOverlay').classList.contains('show');
@@ -675,7 +1251,6 @@ document.addEventListener('keydown', e => {
     else if(qtyOpen){ closeQtyModal(); }
   }
 
-  // Payment method shortcuts (1-4) when pay modal is open
   if(payOpen && !qtyOpen && !receiptOpen){
     if(e.key === '1'){ e.preventDefault(); selectPayMethod('efectivo'); }
     if(e.key === '2'){ e.preventDefault(); selectPayMethod('tarjeta'); }
@@ -689,19 +1264,13 @@ document.addEventListener('keydown', e => {
 function addProductFromSearch(prodId){
   const p = products.find(x=>x.id===prodId);
   if(!p) return;
-  if(p.stock <= 0){
-    crtToast('ERROR: PRODUCTO SIN STOCK', true);
-    return;
-  }
+  if(p.stock <= 0){ crtToast('Sin stock disponible', true); return; }
   pendingProduct = p;
   document.getElementById('qtyProdName').textContent = p.sku + ' — ' + p.name;
   document.getElementById('qtyStock').textContent = 'Stock disponible: ' + p.stock + ' unidades';
   document.getElementById('qtyInput').value = 1;
   document.getElementById('qtyModal').classList.add('show');
-  setTimeout(()=>{
-    document.getElementById('qtyInput').focus();
-    document.getElementById('qtyInput').select();
-  }, 50);
+  setTimeout(()=>{ document.getElementById('qtyInput').focus(); document.getElementById('qtyInput').select(); }, 50);
 }
 
 document.getElementById('qtyInput').addEventListener('keydown', e => {
@@ -712,29 +1281,21 @@ document.getElementById('qtyInput').addEventListener('keydown', e => {
 function confirmQty(){
   if(!pendingProduct) return;
   const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-  if(qty <= 0){ crtToast('CANTIDAD INVÁLIDA', true); return; }
+  if(qty <= 0){ crtToast('Cantidad inválida', true); return; }
   const existing = ticket.find(t=>t.prodId === pendingProduct.id);
   const currentQty = existing ? existing.qty : 0;
   const realProd = products.find(x=>x.id===pendingProduct.id);
   if(realProd && (currentQty + qty) > realProd.stock){
-    crtToast(`STOCK INSUFICIENTE — hay ${realProd.stock}, pedís ${currentQty+qty}`, true);
+    crtToast(`Stock insuficiente — hay ${realProd.stock}, pedís ${currentQty+qty}`, true);
     return;
   }
   if(existing){
     existing.qty += qty;
     existing.subtotal = existing.qty * existing.price;
   } else {
-    ticket.push({
-      prodId: pendingProduct.id,
-      sku: pendingProduct.sku,
-      name: pendingProduct.name,
-      price: pendingProduct.price,
-      cost: pendingProduct.cost,
-      qty: qty,
-      subtotal: qty * pendingProduct.price
-    });
+    ticket.push({ prodId: pendingProduct.id, sku: pendingProduct.sku, name: pendingProduct.name, price: pendingProduct.price, cost: pendingProduct.cost, qty, subtotal: qty * pendingProduct.price });
   }
-  crtToast(`+ ${qty}x ${pendingProduct.sku} AGREGADO`);
+  crtToast(`+${qty}× ${pendingProduct.sku} agregado`);
   closeQtyModal();
   renderTicket();
   searchInput.value = '';
@@ -751,7 +1312,7 @@ function closeQtyModal(){
 function removeItem(idx){
   const it = ticket[idx];
   ticket.splice(idx, 1);
-  crtToast(`- ${it.sku} QUITADO`);
+  crtToast(`${it.sku} quitado`);
   renderTicket();
 }
 
@@ -759,7 +1320,7 @@ function removeItem(idx){
 function renderTicket(){
   const container = document.getElementById('ticketItems');
   if(ticket.length === 0){
-    container.innerHTML = '<div class="ticket-empty">[ TICKET VACÍO — Buscá un producto para agregar ]</div>';
+    container.innerHTML = '<div class="ticket-empty">Ticket vacío — buscá un producto para agregar</div>';
     document.getElementById('itemCount').textContent = '0';
     document.getElementById('ticketTotal').textContent = fmt(0);
     document.getElementById('btnCobrar').disabled = true;
@@ -772,7 +1333,7 @@ function renderTicket(){
       <span class="qty">${it.qty}</span>
       <span class="price">${fmt(it.price)}</span>
       <span class="sub">${fmt(it.subtotal)}</span>
-      <span class="del" onclick="removeItem(${i})">✖</span>
+      <span class="del" onclick="removeItem(${i})">✕</span>
     </div>
   `).join('');
   const total = ticket.reduce((s,i)=>s+i.subtotal, 0);
@@ -782,28 +1343,22 @@ function renderTicket(){
   document.getElementById('btnCobrar').disabled = false;
 }
 
-// ===== COBRAR — Step 1: Open payment modal =====
+// ===== COBRAR =====
 function cobrar(){
   if(ticket.length === 0) return;
   selectedPayMethod = null;
   const total = ticket.reduce((s,i)=>s+i.subtotal, 0);
   const units = ticket.reduce((s,i)=>s+i.qty, 0);
-
   document.getElementById('payTotal').textContent = fmt(total);
   document.getElementById('paySummary').textContent = `${units} artículo${units!==1?'s':''} · ${ticket.length} línea${ticket.length!==1?'s':''}`;
-
-  // Reset method selection
   document.querySelectorAll('.pay-method').forEach(b=>b.classList.remove('selected'));
   document.getElementById('btnConfirmPay').disabled = true;
-
   document.getElementById('payModal').classList.add('show');
 }
 
 function selectPayMethod(method){
   selectedPayMethod = method;
-  document.querySelectorAll('.pay-method').forEach(b=>{
-    b.classList.toggle('selected', b.dataset.method === method);
-  });
+  document.querySelectorAll('.pay-method').forEach(b=>{ b.classList.toggle('selected', b.dataset.method === method); });
   document.getElementById('btnConfirmPay').disabled = false;
 }
 
@@ -813,17 +1368,11 @@ function closePayModal(){
   searchInput.focus();
 }
 
-// ===== COBRAR — Step 2: Confirm and process =====
 async function confirmPayment(){
   if(!selectedPayMethod || ticket.length === 0) return;
-
   const payMethod = selectedPayMethod;
   const payLabel = PAYMENT_LABELS[payMethod] || payMethod.toUpperCase();
-
-  // Close payment modal immediately
   document.getElementById('payModal').classList.remove('show');
-
-  // Capture all data BEFORE clearing
   const saleItems = ticket.map(it=>({...it}));
   const saleTotal = ticket.reduce((s,i)=>s+i.subtotal, 0);
   const custName = document.getElementById('custName').value.trim();
@@ -831,11 +1380,9 @@ async function confirmPayment(){
   const custAddress = document.getElementById('custAddress').value.trim();
   const ticketId = genTicketId();
 
-  // ── SHOW RECEIPT INSTANTLY (optimistic) ──
   showReceipt(saleItems, saleTotal, custName, custPhone, ticketId, payLabel);
-  crtToast('✔ VENTA REGISTRADA');
+  crtToast('✓ Venta registrada');
 
-  // Reset UI immediately — the cashier can start a new sale right away
   ticket = [];
   renderTicket();
   document.getElementById('custName').value = '';
@@ -843,90 +1390,46 @@ async function confirmPayment(){
   document.getElementById('custAddress').value = '';
   document.getElementById('custFound').textContent = '';
 
-  // ── SYNC TO FIRESTORE IN BACKGROUND ──
   setSyncing();
   try {
     await runTransaction(db, async (tx) => {
-      // Read all products
       const prodRefs = saleItems.map(it => doc(db, 'products', it.prodId));
       const snaps = await Promise.all(prodRefs.map(r => tx.get(r)));
-
-      // Validate stock
       for(let i = 0; i < saleItems.length; i++){
         const it = saleItems[i], sn = snaps[i];
-        if(!sn.exists()) throw new Error(`${it.sku} NO EXISTE`);
+        if(!sn.exists()) throw new Error(`${it.sku} no existe`);
         const curStock = sn.data().stock;
-        if(curStock < it.qty) throw new Error(`${it.sku}: STOCK INSUF. (hay ${curStock}, se piden ${it.qty})`);
+        if(curStock < it.qty) throw new Error(`${it.sku}: stock insuficiente`);
       }
-
-      // Decrement stock
       for(let i = 0; i < saleItems.length; i++){
         tx.update(prodRefs[i], { stock: snaps[i].data().stock - saleItems[i].qty });
       }
-
-      // Create movements
       for(const it of saleItems){
         const movRef = doc(movementsCol);
-        tx.set(movRef, {
-          prodId: it.prodId, tipo: 'salida', canal: 'fisica',
-          qty: it.qty, price: it.price,
-          date: serverTimestamp(),
-          notes: `Venta mostrador #${ticketId} · ${payLabel}${custName ? ' — ' + custName : ''}`
-        });
+        tx.set(movRef, { prodId: it.prodId, tipo: 'salida', canal: 'fisica', qty: it.qty, price: it.price, date: serverTimestamp(), notes: `Venta mostrador #${ticketId} · ${payLabel}${custName ? ' — ' + custName : ''}` });
       }
-
-      // Create order
       const orderRef = doc(ordersCol);
-      tx.set(orderRef, {
-        customer: { name: custName||'Mostrador', phone: custPhone||'', address: custAddress||'' },
-        customerId: null,
-        items: saleItems.map(it=>({
-          prodId:it.prodId, sku:it.sku, name:it.name,
-          qty:it.qty, price:it.price, subtotal:it.subtotal
-        })),
-        total: saleTotal, notes: '',
-        status: 'confirmado',
-        channel: 'fisica',
-        payMethod: payMethod,
-        payMethodLabel: payLabel,
-        createdAt: serverTimestamp(),
-        confirmedAt: serverTimestamp(),
-        ticketId: ticketId
-      });
+      tx.set(orderRef, { customer: { name: custName||'Mostrador', phone: custPhone||'', address: custAddress||'' }, customerId: null, items: saleItems.map(it=>({ prodId:it.prodId, sku:it.sku, name:it.name, qty:it.qty, price:it.price, subtotal:it.subtotal })), total: saleTotal, notes: '', status: 'confirmado', channel: 'fisica', payMethod, payMethodLabel: payLabel, createdAt: serverTimestamp(), confirmedAt: serverTimestamp(), ticketId });
     });
 
-    // Customer registration OUTSIDE the transaction (non-blocking)
     if(custPhone){
       try {
         const custQ = query(customersCol, where('phone','==',custPhone));
         const custSnap = await getDocs(custQ);
         if(custSnap.empty){
-          await addDoc(customersCol, {
-            name: custName||'Mostrador', phone: custPhone, address: custAddress,
-            orderCount:1, totalSpent:saleTotal,
-            createdAt:serverTimestamp(), updatedAt:serverTimestamp()
-          });
+          await addDoc(customersCol, { name: custName||'Mostrador', phone: custPhone, address: custAddress, orderCount:1, totalSpent:saleTotal, createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
         } else {
           const existing = custSnap.docs[0];
           const prev = existing.data();
-          await updateDoc(doc(db,'customers',existing.id), {
-            name: custName || prev.name, address: custAddress || prev.address,
-            orderCount: (prev.orderCount||0)+1,
-            totalSpent: (prev.totalSpent||0)+saleTotal,
-            updatedAt: serverTimestamp()
-          });
+          await updateDoc(doc(db,'customers',existing.id), { name: custName || prev.name, address: custAddress || prev.address, orderCount: (prev.orderCount||0)+1, totalSpent: (prev.totalSpent||0)+saleTotal, updatedAt: serverTimestamp() });
         }
       } catch(ce){ console.warn('Customer registration failed:', ce); }
     }
-
     setSyncOk();
-
   } catch(e){
     setSyncError();
-    crtToast('⚠ ERROR SYNC: ' + e.message + ' — Reintentar desde backoffice', true);
+    crtToast('⚠ Error sync: ' + e.message, true);
     console.error('Background sync failed:', e);
-    // The receipt was already shown — the cashier sees the error in the sync bar
-    // They can retry or handle from the backoffice
   }
 }
 
@@ -940,7 +1443,6 @@ function showReceipt(items, total, custName, custPhone, tid, payLabel){
   const w = 44;
   const line = '═'.repeat(w);
   const dash = '─'.repeat(w);
-
   let r = '';
   r += centerText(storeName, w) + '\n';
   r += centerText('PUNTO DE VENTA', w) + '\n';
@@ -952,13 +1454,11 @@ function showReceipt(items, total, custName, custPhone, tid, payLabel){
   r += dash + '\n';
   r += '  CANT  PRODUCTO               SUBTOT\n';
   r += dash + '\n';
-
   items.forEach(it => {
     const name = it.name.length > 20 ? it.name.slice(0,19)+'…' : it.name;
     const sub = c + Number(it.subtotal).toLocaleString('es-AR');
     r += `  ${String(it.qty).padStart(3)}x  ${name.padEnd(22)} ${sub.padStart(8)}\n`;
   });
-
   r += dash + '\n';
   const totalStr = c + Number(total).toLocaleString('es-AR');
   r += `\n  TOTAL:  ${totalStr}\n`;
@@ -966,7 +1466,6 @@ function showReceipt(items, total, custName, custPhone, tid, payLabel){
   r += line + '\n';
   r += centerText('¡GRACIAS POR SU COMPRA!', w) + '\n';
   r += centerText(config.footerText || '', w) + '\n';
-
   document.getElementById('receiptText').textContent = r;
   document.getElementById('receiptOverlay').classList.add('show');
 }
@@ -981,17 +1480,13 @@ function closeReceipt(){
   document.getElementById('receiptOverlay').classList.remove('show');
   searchInput.focus();
 }
-function printReceipt(){
-  window.print();
-}
-
-// ===== CANCEL / NEW =====
+function printReceipt(){ window.print(); }
 function cancelTicket(){
   if(ticket.length === 0) return;
   if(!confirm('¿Cancelar el ticket actual?')) return;
   ticket = [];
   renderTicket();
-  crtToast('TICKET CANCELADO');
+  crtToast('Ticket cancelado');
   searchInput.focus();
 }
 function nuevoTicket(){
@@ -1004,15 +1499,13 @@ function nuevoTicket(){
   document.getElementById('custPhone').value = '';
   document.getElementById('custAddress').value = '';
   document.getElementById('custFound').textContent = '';
-  crtToast('NUEVO TICKET LISTO');
+  crtToast('Nuevo ticket listo');
   searchInput.focus();
 }
 
-// Init
 renderTicket();
 document.getElementById('ticketNum').textContent = '#' + genTicketId();
 
-// Expose
 window.removeItem = removeItem;
 window.confirmQty = confirmQty;
 window.closeQtyModal = closeQtyModal;
