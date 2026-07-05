@@ -115,6 +115,7 @@
   --pay-total-color:#1D1D1F;
   --pay-method-selected-border:#34C759;
   --header-title-size:16px;
+  --logo-bg:#E8E8ED;
 }
 
 /* ═══════════════════════════════════════════
@@ -867,7 +868,7 @@ body{
 <div class="pos-header">
   <div class="header-left">
     <div class="store" id="storeName">
-      <svg viewBox="0 0 520 200" style="height:32px;width:auto;vertical-align:middle" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 520 200" style="height:44px;width:auto;vertical-align:middle;border-radius:6px;padding:4px 8px;background:var(--logo-bg,transparent)" xmlns="http://www.w3.org/2000/svg">
         <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
         <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
         <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
@@ -883,7 +884,7 @@ body{
   <div class="header-center">
     <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
       <span class="dot"></span>
-      <span id="themeLabel">MODO APPLE</span>
+      <span id="themeLabel">MODO CLARO</span>
     </button>
     <div class="meta">
       <div>PUNTO DE VENTA · CAJA</div>
@@ -1063,7 +1064,7 @@ function applyTheme(theme) {
   html.setAttribute('data-theme', theme);
   localStorage.setItem(THEME_KEY, theme);
   if (theme === 'crt') {
-    themeLabel.textContent = 'MODO APPLE';
+    themeLabel.textContent = 'MODO CLARO';
   } else {
     themeLabel.textContent = 'MODO CRT';
   }
@@ -1480,7 +1481,14 @@ function closeReceipt(){
   document.getElementById('receiptOverlay').classList.remove('show');
   searchInput.focus();
 }
-function printReceipt(){ window.print(); }
+function printReceipt(){
+  const content = document.getElementById('receiptText').textContent;
+  const w = window.open('','_blank','width=480,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ticket</title><style>body{font-family:'Courier New',monospace;font-size:13px;padding:20px;margin:0;white-space:pre-wrap}@media print{body{padding:4px}}</style></head><body>${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</body></html>`);
+  w.document.close();
+  w.focus();
+  w.print();
+}
 function cancelTicket(){
   if(ticket.length === 0) return;
   if(!confirm('¿Cancelar el ticket actual?')) return;
