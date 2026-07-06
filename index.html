@@ -10,6 +10,17 @@
     --primary:#3b82f6; --primary-hover:#2563eb; --success:#22c55e; --warning:#f59e0b;
     --danger:#ef4444; --border:#334155; --accent:#8b5cf6;
   }
+  [data-theme="light"]{
+    --bg:#F5F5F7; --panel:#FFFFFF; --panel-2:#F0F0F5; --text:#1D1D1F; --muted:#6E6E73;
+    --primary:#0071e3; --primary-hover:#0077ed; --success:#34C759; --warning:#FF9F0A;
+    --danger:#FF3B30; --border:#D2D2D7; --accent:#5E5CE6;
+  }
+  [data-theme="light"] .nav-btn.active{background:var(--primary);color:#fff}
+  [data-theme="light"] aside{background:var(--panel);border-right:1px solid var(--border)}
+  [data-theme="light"] .toast{box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  [data-theme="light"] .auth-loading{background:var(--bg)}
+  :root{
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
   aside{width:240px;background:var(--panel);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;overflow-y:auto}
@@ -138,6 +149,8 @@
   .role-contable{background:rgba(245,158,11,.2);color:#fbbf24}
   .role-cajero{background:rgba(34,197,94,.2);color:#4ade80}
   .role-cliente{background:rgba(148,163,184,.2);color:#94a3b8}
+  .theme-toggle-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:12px;width:100%;transition:all .15s;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+  .theme-toggle-btn:hover{border-color:var(--primary);color:var(--text)}
   .btn-logout{background:transparent;border:1px solid var(--danger);color:var(--danger);text-align:center;padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;width:100%;margin-top:auto;transition:all .15s}
   .btn-logout:hover{background:var(--danger);color:#fff}
   @media(max-width:768px){
@@ -158,7 +171,7 @@
 
 <aside id="sidebarEl" style="display:none">
   <div style="padding:4px 0 8px">
-    <div id="sidebarLogo" style="padding:4px 0 4px"><span style="font-size:18px;font-weight:700;color:#fff;letter-spacing:-.01em">MyBusiness</span></div>
+    <div id="sidebarLogo" style="padding:4px 0 4px"><span style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.01em">MyBusiness</span></div>
   </div>
   <div id="fbStatus" class="status-pill">Conectando a Firestore…</div>
   <button class="nav-btn active" data-view="dashboard">📊 Dashboard</button>
@@ -181,6 +194,9 @@
   <a class="nav-btn" href="caja.html" target="_blank" style="background:linear-gradient(135deg,#1a1a2e,#0d0d0d);color:#33ff33;border:1px solid #33ff33;">💰 Abrir caja POS</a>
   <button class="nav-btn" id="seedBtn">🌱 Cargar datos demo</button>
   <button class="nav-btn" id="exportBtn">⬇️ Exportar JSON</button>
+  <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleBackofficeTheme()">
+    <span id="themeIcon">☀️</span><span id="themeText">Modo claro</span>
+  </button>
   <button class="btn-logout" id="logoutBtn" style="display:none" onclick="window._doLogout()">🚪 Cerrar sesión</button>
 </aside>
 
@@ -441,9 +457,23 @@
         <div class="help-text">Aparece en el header y en el título de la pestaña del navegador</div>
       </div>
       <div style="grid-column:1/-1">
-        <label>URL del logo <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
-        <input id="cfg-logoUrl" placeholder="https://tu-dominio.com/logo.png" />
-        <div class="help-text">Si se deja vacío, se muestra el nombre de la tienda como texto. Recomendado: imagen PNG/SVG con fondo transparente, altura ~40px.</div>
+        <label>Logo de la empresa <span style="font-weight:400;color:var(--muted)">(opcional)</span></label>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:4px;flex-wrap:wrap">
+          <div id="logoPreviewWrap" style="width:120px;height:52px;border-radius:8px;background:var(--panel-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+            <span id="logoPreviewPlaceholder" style="font-size:12px;color:var(--muted)">Sin logo</span>
+            <img id="logoPreviewImg" src="" alt="Logo" style="display:none;max-width:116px;max-height:48px;object-fit:contain"/>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <div class="file-upload-row" style="margin-bottom:6px">
+              <input type="file" id="cfg-logoFile" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="flex:1"/>
+              <button class="btn small" type="button" id="uploadLogoBtn" onclick="uploadLogoFile()">⬆ Subir</button>
+              <span class="upload-status" id="logoUploadStatus"></span>
+            </div>
+            <input id="cfg-logoUrl" placeholder="O pegá una URL directa..." style="font-size:12px" oninput="previewLogoUrl(this.value)"/>
+            <div class="help-text">PNG, SVG o JPG con fondo transparente. Se aplica en tienda, caja y login.</div>
+          </div>
+          <button class="btn danger small" type="button" onclick="removeLogo()" style="flex-shrink:0;padding:6px 10px;font-size:12px">✕ Quitar</button>
+        </div>
       </div>
       <div style="grid-column:1/-1">
         <label>Hero — título principal</label>
@@ -1887,10 +1917,13 @@ function openVentaModal(id){
 // ===== CONFIG =====
 function fillConfigForm(){
   const c = state.config;
-  ['storeName','heroTitle','heroSubtitle','whatsapp','currency','footerText','primaryColor'].forEach(k=>{
+  ['storeName','heroTitle','heroSubtitle','whatsapp','currency','footerText','primaryColor','logoUrl'].forEach(k=>{
     const el = document.getElementById('cfg-'+k);
     if(el && c[k]!=null) el.value = c[k];
   });
+  // Mostrar preview del logo actual
+  if(c.logoUrl) previewLogoUrl(c.logoUrl);
+  else previewLogoUrl('');
 }
 async function saveConfig(){
   const cfg = {
@@ -2405,6 +2438,7 @@ async function saveUsuario(){
 
 function render(){
   renderDashboard(); renderCatalogo(); renderMovimientos(); renderPedidos(); renderVentas(); renderClientes(); renderProveedores(); renderCompras(); renderSlider(); renderOfertas(); renderAlertas(); renderReportes(); renderUsuarios();
+  initBackofficeTheme();
 }
 
 ['searchProd','filterCat','filterStock'].forEach(id=>document.getElementById(id).addEventListener('input',renderCatalogo));
@@ -2426,7 +2460,97 @@ window.openMovForProduct = openMovForProduct;
 window.openOrderModal = openOrderModal;
 window.confirmOrder = confirmOrder;
 window.changeOrderStatus = changeOrderStatus;
+// ===== THEME BACKOFFICE =====
+const THEME_KEY_BACK = 'mybusiness_back_theme';
+function initBackofficeTheme(){
+  const saved = localStorage.getItem(THEME_KEY_BACK) || 'dark';
+  applyBackofficeTheme(saved);
+}
+function applyBackofficeTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem(THEME_KEY_BACK, theme);
+  const icon = document.getElementById('themeIcon');
+  const text = document.getElementById('themeText');
+  if(icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+  if(text) text.textContent = theme === 'dark' ? 'Modo claro' : 'Modo oscuro';
+}
+function toggleBackofficeTheme(){
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  applyBackofficeTheme(current === 'dark' ? 'light' : 'dark');
+}
+
+// ===== LOGO UPLOAD =====
+function previewLogoUrl(url){
+  const img = document.getElementById('logoPreviewImg');
+  const placeholder = document.getElementById('logoPreviewPlaceholder');
+  if(!img || !placeholder) return;
+  if(url && url.trim()){
+    img.src = url.trim();
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    img.onerror = () => { img.style.display='none'; placeholder.style.display='flex'; };
+  } else {
+    img.style.display = 'none';
+    img.src = '';
+    placeholder.style.display = 'flex';
+  }
+}
+
+async function uploadLogoFile(){
+  const fileInput = document.getElementById('cfg-logoFile');
+  const statusEl = document.getElementById('logoUploadStatus');
+  const btn = document.getElementById('uploadLogoBtn');
+  if(!fileInput.files[0]){ toast('Seleccioná un archivo primero','error'); return; }
+  const file = fileInput.files[0];
+  if(file.size > 2 * 1024 * 1024){ toast('El logo debe pesar menos de 2MB','error'); return; }
+  btn.disabled = true;
+  statusEl.textContent = 'Subiendo...';
+  try {
+    const url = await uploadImage(file, 'logos');
+    document.getElementById('cfg-logoUrl').value = url;
+    previewLogoUrl(url);
+    statusEl.textContent = '✓ Listo';
+    // Guardar inmediatamente en Firestore
+    await setDoc(configRef, { logoUrl: url }, { merge: true });
+    state.config.logoUrl = url;
+    updateSidebarLogo();
+    toast('Logo subido y guardado ✓');
+  } catch(e){
+    statusEl.textContent = 'Error';
+    toast('Error al subir: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+}
+
+async function removeLogo(){
+  if(!confirm('¿Quitar el logo? Se mostrará el nombre de la tienda.')) return;
+  document.getElementById('cfg-logoUrl').value = '';
+  previewLogoUrl('');
+  await setDoc(configRef, { logoUrl: '' }, { merge: true });
+  state.config.logoUrl = '';
+  updateSidebarLogo();
+  toast('Logo quitado');
+}
+
+function updateSidebarLogo(){
+  const sbl = document.getElementById('sidebarLogo');
+  if(!sbl) return;
+  const cfg = state.config;
+  if(cfg && cfg.logoUrl){
+    sbl.innerHTML = '<img src="'+cfg.logoUrl+'" alt="'+(cfg.storeName||'MyBusiness')+
+      '" style="height:40px;width:auto;max-width:200px;object-fit:contain;display:block"/>';
+  } else {
+    sbl.innerHTML = '<span style="font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.01em">'+(cfg && cfg.storeName||'MyBusiness')+'</span>';
+  }
+  if(cfg && cfg.storeName) document.title = cfg.storeName + ' — Backoffice';
+}
+
+
 window.saveConfig = saveConfig;
+window.toggleBackofficeTheme = toggleBackofficeTheme;
+window.uploadLogoFile = uploadLogoFile;
+window.removeLogo = removeLogo;
+window.previewLogoUrl = previewLogoUrl;
 window.updateImgPreview = updateImgPreview;
 window.addProductImageUrl = addProductImageUrl;
 window.uploadAndAddProductImage = uploadAndAddProductImage;
