@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Isbeis Imports - Iniciar sesion</title>
+  <title>MyBusiness — Iniciar sesión</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -132,17 +132,8 @@
 <body>
 
   <div class="card">
-    <div class="logo-wrap">
-      <svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg">
-        <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
-        <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
-        <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
-        <circle cx="152" cy="82" r="16" fill="#c0392b"/>
-        <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
-        <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
-        <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
-      </svg>
+    <div class="logo-wrap" id="loginLogoWrap">
+      <span id="loginLogoText" style="font-size:28px;font-weight:700;color:#fff;letter-spacing:-.02em">MyBusiness</span>
     </div>
 
     <!-- Banner: ya logueado -->
@@ -234,6 +225,26 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+const db_login = getFirestore(app);
+
+// Cargar logo/nombre desde config de Firestore
+(async () => {
+  try {
+    const cfgSnap = await getDoc(doc(db_login, 'config', 'store'));
+    if(cfgSnap.exists()){
+      const cfg = cfgSnap.data();
+      const wrap = document.getElementById('loginLogoWrap');
+      if(wrap){
+        if(cfg.logoUrl){
+          wrap.innerHTML = '<img src="'+cfg.logoUrl+'" alt="'+(cfg.storeName||'MyBusiness')+'" style="max-height:60px;max-width:260px;object-fit:contain"/>';
+        } else if(cfg.storeName){
+          document.getElementById('loginLogoText').textContent = cfg.storeName;
+        }
+      }
+      document.title = (cfg.storeName || 'MyBusiness') + ' — Iniciar sesión';
+    }
+  } catch(e){ /* config no cargada, usar defaults */ }
+})();
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
@@ -430,13 +441,13 @@
     const seedLog = document.getElementById('seedLog');
 
     const demoUsers = [
-      { email: 'cliente1@isbeis.com', pass: 'Test1234!', role: 'cliente', name: 'Maria Gonzalez' },
-      { email: 'cliente2@isbeis.com', pass: 'Test1234!', role: 'cliente', name: 'Juan Perez' },
-      { email: 'cajero1@isbeis.com', pass: 'Test1234!', role: 'cajero', name: 'Ana Lopez' },
-      { email: 'cajero2@isbeis.com', pass: 'Test1234!', role: 'cajero', name: 'Pedro Martinez' },
-      { email: 'manager1@isbeis.com', pass: 'Test1234!', role: 'manager', name: 'Laura Rodriguez' },
-      { email: 'contable1@isbeis.com', pass: 'Test1234!', role: 'contable', name: 'Carlos Silva' },
-      { email: 'admin@isbeis.com', pass: 'Test1234!', role: 'admin_it', name: 'Fernando Marquez' },
+      { email: 'cliente1@demo.com', pass: 'Test1234!', role: 'cliente', name: 'Maria Gonzalez' },
+      { email: 'cliente2@demo.com', pass: 'Test1234!', role: 'cliente', name: 'Juan Perez' },
+      { email: 'cajero1@demo.com', pass: 'Test1234!', role: 'cajero', name: 'Ana Lopez' },
+      { email: 'cajero2@demo.com', pass: 'Test1234!', role: 'cajero', name: 'Pedro Martinez' },
+      { email: 'manager1@demo.com', pass: 'Test1234!', role: 'manager', name: 'Laura Rodriguez' },
+      { email: 'contable1@demo.com', pass: 'Test1234!', role: 'contable', name: 'Carlos Silva' },
+      { email: 'admin@demo.com', pass: 'Test1234!', role: 'admin_it', name: 'Admin Demo' },
     ];
 
     function logSeed(text, color = '#94a3b8') {
@@ -513,16 +524,16 @@
 
       // 4. Fin — loguear como admin
       logSeed('');
-      logSeed('Listo! Iniciando sesion como admin@isbeis.com...');
+      logSeed('Listo! Iniciando sesion como admin@demo.com...');
       try {
-        const adminCred = await signInWithEmailAndPassword(auth, 'admin@isbeis.com', 'Test1234!');
+        const adminCred = await signInWithEmailAndPassword(auth, 'admin@demo.com', 'Test1234!');
         logSeed('Sesion iniciada como Admin IT', '#86efac');
         logSeed('Redirigiendo al backoffice en 2 segundos...', '#86efac');
         seedRunning = false;
         setTimeout(() => { window.location.href = 'index.html'; }, 2000);
       } catch (err) {
         logSeed('No se pudo loguear como admin: ' + err.message, '#fca5a5');
-        logSeed('Podes ingresar manualmente con admin@isbeis.com / Test1234!', '#fcd34d');
+        logSeed('Podes ingresar manualmente con admin@demo.com / Test1234!', '#fcd34d');
         seedRunning = false;
         seedBtn.disabled = false;
         seedBtn.textContent = '\u{1F331} Crear usuarios demo';
