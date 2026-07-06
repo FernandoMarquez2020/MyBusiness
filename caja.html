@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>CAJA — Terminal POS</title>
+<title>Caja — POS</title>
 <link href="https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
 /* ═══════════════════════════════════════════
@@ -867,18 +867,7 @@ body{
 <!-- HEADER -->
 <div class="pos-header">
   <div class="header-left">
-    <div class="store" id="storeName">
-      <svg viewBox="0 0 520 200" style="height:44px;width:auto;vertical-align:middle;border-radius:6px;padding:4px 8px;background:var(--logo-bg,transparent)" xmlns="http://www.w3.org/2000/svg">
-        <line x1="38" y1="82" x2="58" y2="82" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round"/>
-        <polyline points="52,76 58,82 52,88" fill="none" stroke="#c0392b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="80" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
-        <circle cx="116" cy="82" r="14" fill="none" stroke="#c0392b" stroke-width="3"/>
-        <circle cx="152" cy="82" r="16" fill="#c0392b"/>
-        <text x="190" y="95" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="72" font-weight="800" fill="#ffffff" letter-spacing="4">ISBEIS</text>
-        <text x="192" y="135" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="28" font-weight="400" fill="#c0392b" letter-spacing="12">IMPORTS</text>
-        <line x1="192" y1="148" x2="490" y2="148" stroke="#c0392b" stroke-width="1.5"/>
-      </svg>
-    </div>
+    <div id="storeName" style="display:flex;align-items:center"><span id="cajaStoreName" style="font-size:20px;font-weight:700;letter-spacing:-.01em">MyBusiness</span></div>
     <div class="status" id="connStatus">CONECTANDO...</div>
   </div>
   <div class="header-center">
@@ -1176,7 +1165,21 @@ onSnapshot(productsCol, snap => {
   document.getElementById('connStatus').className = 'status err';
 });
 onSnapshot(configRef, snap => {
-  if(snap.exists()) config = snap.data();
+  if(snap.exists()){
+    config = snap.data();
+    // Actualizar logo y título desde config
+    const nameEl = document.getElementById('cajaStoreName');
+    if(nameEl){
+      if(config.logoUrl){
+        document.getElementById('storeName').innerHTML =
+          '<img src="'+config.logoUrl+'" alt="'+(config.storeName||'MyBusiness')+
+          '" style="height:40px;width:auto;max-width:180px;object-fit:contain;border-radius:4px;padding:2px 6px;background:var(--logo-bg,transparent)"/>';
+      } else {
+        nameEl.textContent = config.storeName || 'MyBusiness';
+      }
+    }
+    document.title = 'Caja — ' + (config.storeName || 'MyBusiness');
+  }
 });
 
 // ===== SEARCH =====
