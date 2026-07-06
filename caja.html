@@ -1024,15 +1024,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
-  authDomain: "mybusiness-ee7a4.firebaseapp.com",
-  projectId: "mybusiness-ee7a4",
-  storageBucket: "mybusiness-ee7a4.firebasestorage.app",
-  messagingSenderId: "1094706581573",
-  appId: "1:1094706581573:web:8129a8d26c6ba195ea532c",
-  measurementId: "G-BC7JLJ1KBC"
-};
+import { firebaseConfig } from "./config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -1044,9 +1036,7 @@ const configRef = doc(db, "config", "store");
 const auth = getAuth(app);
 
 // ===== THEME TOGGLE =====
-const MP_BACKEND = "https://mybusiness-mp.onrender.com"; // ← URL de tu backend en Render
-const MP_DEVICE_ID = ""; // ← ID del Point registrado en tu cuenta MP
-
+import { MP_BACKEND, MP_DEVICE_ID } from "./config.js";
 const THEME_KEY = 'caja_theme';
 const html = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
@@ -1536,7 +1526,7 @@ let pointPollInterval = null;
 
 async function cobrarConPoint(amount, ticketId, items){
   if(!MP_DEVICE_ID){
-    crtToast('⚠ Configurá MP_DEVICE_ID en caja.html', true);
+    crtToast('⚠ Configurá MP_DEVICE_ID en config.js', true);
     return false;
   }
   try {
