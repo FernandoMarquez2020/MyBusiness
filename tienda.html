@@ -358,8 +358,6 @@ import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvid
 
 // La configuración de la tienda se administra desde el backoffice (sección "Configuración")
 // y se guarda en Firestore en /config/store
-const MP_BACKEND = "https://mybusiness-mp.onrender.com"; // ← URL de tu backend en Render
-
 let STORE_CONFIG = {
   storeName: "MyBusiness",
   heroTitle: "Encontrá tu estilo.",
@@ -370,15 +368,7 @@ let STORE_CONFIG = {
   primaryColor: "#0071e3"
 };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyD6XMrPeGS-idKEpoUftbvjkpSJvkBTLuw",
-  authDomain: "mybusiness-ee7a4.firebaseapp.com",
-  projectId: "mybusiness-ee7a4",
-  storageBucket: "mybusiness-ee7a4.firebasestorage.app",
-  messagingSenderId: "1094706581573",
-  appId: "1:1094706581573:web:8129a8d26c6ba195ea532c",
-  measurementId: "G-BC7JLJ1KBC"
-};
+import { firebaseConfig, MP_BACKEND } from "./config.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
