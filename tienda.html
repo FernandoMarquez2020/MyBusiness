@@ -191,6 +191,15 @@
   .toast.error{background:var(--danger)}
   @keyframes toastIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
 
+
+  /* Mercado Pago button */
+  .mp-btn{background:#009EE3;color:#fff;font-size:15px;font-weight:600;padding:14px 22px;border-radius:980px;transition:background .15s;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;border:none;cursor:pointer;font-family:inherit}
+  .mp-btn:hover{background:#007EB5}
+  .mp-btn:disabled{background:#86868b;cursor:not-allowed}
+  .mp-btn svg{flex-shrink:0}
+  .pay-divider{display:flex;align-items:center;gap:.75rem;margin:.75rem 0;color:#86868b;font-size:12px}
+  .pay-divider::before,.pay-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
   /* Success screen */
   .success-screen{padding:48px 24px;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
   .success-icon{width:64px;height:64px;border-radius:50%;background:var(--success);color:#fff;font-size:32px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
@@ -331,7 +340,12 @@
     <div><label>Direcci&oacute;n de entrega *</label><textarea id="ck-address" placeholder="Calle, n&uacute;mero, apto, ciudad"></textarea></div>
     <div><label>Notas (opcional)</label><textarea id="ck-notes" placeholder="Aclaraciones, talles, color preferido&hellip;"></textarea></div>
     <div class="summary" id="checkoutSummary"></div>
-    <button class="btn dark full lg" id="placeOrderBtn" onclick="placeOrder()">Confirmar pedido por WhatsApp</button>
+    <button class="mp-btn" id="mpPayBtn" onclick="pagarConMP()">
+      <svg width="20" height="20" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#fff"/><path d="M8 24c0-8.837 7.163-16 16-16s16 7.163 16 16-7.163 16-16 16S8 32.837 8 24z" fill="#009EE3"/><path d="M20 18h8a4 4 0 0 1 0 8h-4v4h-4V18z" fill="#fff"/><rect x="24" y="18" width="4" height="4" rx="2" fill="#009EE3"/></svg>
+      Pagar con Mercado Pago
+    </button>
+    <div class="pay-divider">o</div>
+    <button class="btn dark full lg" id="placeOrderBtn" onclick="placeOrder()">Confirmar por WhatsApp</button>
     <button class="btn secondary full" onclick="backToCart()">&larr; Volver al carrito</button>
   </div>
 
@@ -356,6 +370,8 @@ import { getAuth, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvid
 
 // La configuración de la tienda se administra desde el backoffice (sección "Configuración")
 // y se guarda en Firestore en /config/store
+const MP_BACKEND = "https://mybusiness-mp.onrender.com"; // ← URL de tu backend en Render
+
 let STORE_CONFIG = {
   storeName: "MyBusiness",
   heroTitle: "Encontrá tu estilo.",
@@ -1035,6 +1051,101 @@ window.resetCart = resetCart;
 window.requireAuth = requireAuth;
 
 updateCartUI();
+
+// ─────────────────────────────────────────────
+//  MERCADO PAGO — Checkout Pro
+// ─────────────────────────────────────────────
+async function pagarConMP(){
+  if(!requireAuth()) return;
+  const name    = document.getElementById('ck-name').value.trim();
+  const phone   = document.getElementById('ck-phone').value.trim();
+  const address = document.getElementById('ck-address').value.trim();
+  const notes   = document.getElementById('ck-notes').value.trim();
+  if(!name || !phone || !address){ toast('Completá nombre, teléfono y dirección','error'); return; }
+
+  const btn = document.getElementById('mpPayBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff"></span> Procesando...';
+
+  try {
+    const total = state.cart.reduce((s,i)=>s+i.qty*i.price, 0);
+    const items = state.cart.map(i=>({prodId:i.id, sku:i.sku, name:i.name, qty:i.qty, price:i.price, subtotal:i.qty*i.price}));
+
+    // 1. Guardar pedido en Firestore con status "pago_pendiente"
+    let customerId = null;
+    try {
+      const custQ = query(customersCol, where('phone','==',phone));
+      const custSnap = await getDocs(custQ);
+      if(custSnap.empty){
+        const custRef = await addDoc(customersCol, {name, phone, address, orderCount:0, totalSpent:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp()});
+        customerId = custRef.id;
+      } else {
+        customerId = custSnap.docs[0].id;
+      }
+    } catch(ce){ console.warn('Customer lookup failed:', ce); }
+
+    const orderRef = await addDoc(ordersCol, {
+      customer: {name, phone, address},
+      customerId,
+      items, total, notes,
+      status: 'pago_pendiente',
+      channel: 'online',
+      payMethod: 'mercadopago',
+      createdAt: serverTimestamp()
+    });
+
+    // 2. Pedir preferencia MP al backend
+    const res = await fetch(`${MP_BACKEND}/api/mp/crear-preferencia`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        items,
+        orderId: orderRef.id,
+        customer: {name, phone}
+      })
+    });
+
+    if(!res.ok) throw new Error('Error al conectar con el procesador de pagos');
+    const {init_point, sandbox_init_point} = await res.json();
+
+    // 3. Redirigir a MP (usa sandbox_init_point para testing)
+    const mpUrl = init_point; // cambiar a sandbox_init_point para pruebas
+    window.location.href = mpUrl;
+
+  } catch(e) {
+    console.error(e);
+    toast('Error: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#fff"/><path d="M8 24c0-8.837 7.163-16 16-16s16 7.163 16 16-7.163 16-16 16S8 32.837 8 24z" fill="#009EE3"/><path d="M20 18h8a4 4 0 0 1 0 8h-4v4h-4V18z" fill="#fff"/><rect x="24" y="18" width="4" height="4" rx="2" fill="#009EE3"/></svg> Pagar con Mercado Pago`;
+  }
+}
+
+// Detectar retorno desde MP (success/failure/pending)
+(function checkMPReturn(){
+  const params = new URLSearchParams(window.location.search);
+  const pago = params.get('pago');
+  const orderId = params.get('order');
+  if(!pago) return;
+  if(pago === 'aprobado'){
+    toast('¡Pago aprobado! Tu pedido está confirmado ✓', 'success');
+    // Actualizar estado del pedido en Firestore
+    if(orderId) {
+      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({doc, updateDoc, getFirestore}) => {
+        const db2 = getFirestore();
+        updateDoc(doc(db2, 'orders', orderId), {status: 'confirmado', payMethod: 'mercadopago', confirmedAt: new Date()}).catch(console.warn);
+      });
+    }
+  } else if(pago === 'rechazado'){
+    toast('El pago fue rechazado. Podés intentar de nuevo.', 'error');
+  } else if(pago === 'pendiente'){
+    toast('Pago pendiente de acreditación.', '');
+  }
+  // Limpiar URL
+  window.history.replaceState({}, '', window.location.pathname);
+})();
+
+
 </script>
 </body>
 </html>
+
