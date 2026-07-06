@@ -995,7 +995,7 @@ body{
       </button>
       <button class="pay-method" data-method="tarjeta" onclick="selectPayMethod('tarjeta')">
         <span class="pay-icon">💳</span>
-        <span class="pay-label">Tarjeta</span>
+        <span class="pay-label">Tarjeta (Point MP)</span>
         <span class="pay-key"><kbd>2</kbd></span>
       </button>
       <button class="pay-method" data-method="remito" onclick="selectPayMethod('remito')">
@@ -1055,6 +1055,9 @@ const configRef = doc(db, "config", "store");
 const auth = getAuth(app);
 
 // ===== THEME TOGGLE =====
+const MP_BACKEND = "https://mybusiness-mp.onrender.com"; // ← URL de tu backend en Render
+const MP_DEVICE_ID = ""; // ← ID del Point registrado en tu cuenta MP
+
 const THEME_KEY = 'caja_theme';
 const html = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
@@ -1374,6 +1377,16 @@ async function confirmPayment(){
   const payMethod = selectedPayMethod;
   const payLabel = PAYMENT_LABELS[payMethod] || payMethod.toUpperCase();
   document.getElementById('payModal').classList.remove('show');
+
+  // Si es tarjeta → usar MP Point
+  if(payMethod === 'tarjeta' && MP_DEVICE_ID){
+    const saleAmount = ticket.reduce((s,i)=>s+i.subtotal, 0);
+    const saleItems  = ticket.map(it=>({...it}));
+    const tid = genTicketId();
+    const launched = await cobrarConPoint(saleAmount, tid, saleItems);
+    if(!launched) return; // error ya mostrado
+    // El flujo continúa en background via polling; el ticket se registra igual
+  }
   const saleItems = ticket.map(it=>({...it}));
   const saleTotal = ticket.reduce((s,i)=>s+i.subtotal, 0);
   const custName = document.getElementById('custName').value.trim();
@@ -1510,6 +1523,104 @@ function nuevoTicket(){
   crtToast('Nuevo ticket listo');
   searchInput.focus();
 }
+
+
+// ─────────────────────────────────────────────
+//  MERCADO PAGO POINT — POS físico
+// ─────────────────────────────────────────────
+let currentPaymentIntent = null;
+let pointPollInterval = null;
+
+async function cobrarConPoint(amount, ticketId, items){
+  if(!MP_DEVICE_ID){
+    crtToast('⚠ Configurá MP_DEVICE_ID en caja.html', true);
+    return false;
+  }
+  try {
+    const description = items.map(i=>i.qty+'x '+i.sku).join(', ').slice(0, 60);
+    const res = await fetch(`${MP_BACKEND}/api/mp/point/cobrar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({amount, ticketId, deviceId: MP_DEVICE_ID, description})
+    });
+    if(!res.ok) throw new Error('Error al conectar con el Point');
+    const data = await res.json();
+    currentPaymentIntent = data.payment_intent_id;
+
+    // Mostrar overlay de espera
+    showPointWaiting(amount, ticketId);
+    // Polling cada 3s para saber si se aprobó
+    pointPollInterval = setInterval(() => pollPointStatus(ticketId), 3000);
+    return true;
+  } catch(e) {
+    crtToast('Error Point: ' + e.message, true);
+    return false;
+  }
+}
+
+async function pollPointStatus(ticketId){
+  try {
+    // Consultar pago por external_reference = ticketId
+    const res = await fetch(
+      `${MP_BACKEND}/api/mp/point/status?ticketId=${encodeURIComponent(ticketId)}`,
+      {method: 'GET', headers: {'Content-Type': 'application/json'}}
+    );
+    if(!res.ok) return;
+    const data = await res.json();
+    if(data.status === 'approved'){
+      clearInterval(pointPollInterval);
+      closePointWaiting();
+      crtToast('✓ Pago con tarjeta aprobado');
+      currentPaymentIntent = null;
+    } else if(data.status === 'rejected'){
+      clearInterval(pointPollInterval);
+      closePointWaiting();
+      crtToast('✗ Pago rechazado — intentá de nuevo', true);
+      currentPaymentIntent = null;
+    }
+  } catch(e){ /* silencioso */ }
+}
+
+function showPointWaiting(amount, ticketId){
+  let overlay = document.getElementById('pointOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'pointOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:center;justify-content:center';
+    overlay.innerHTML = `
+      <div style="background:var(--modal-bg);border:1px solid var(--modal-border-color);border-radius:16px;padding:32px;text-align:center;min-width:320px;max-width:400px">
+        <div style="font-size:48px;margin-bottom:16px">💳</div>
+        <div style="font-size:20px;font-weight:600;color:var(--body-color);margin-bottom:8px">Presentar tarjeta</div>
+        <div style="font-size:32px;font-weight:700;color:var(--green);margin:16px 0">${fmt(amount)}</div>
+        <div style="font-size:13px;color:var(--section-label-color);margin-bottom:24px">Ticket #${ticketId} · Esperando confirmación del Point...</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <button onclick="cancelarPoint()" style="font-family:var(--font-main);background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;cursor:pointer">Cancelar</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = 'flex';
+}
+
+function closePointWaiting(){
+  const overlay = document.getElementById('pointOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+async function cancelarPoint(){
+  if(currentPaymentIntent && MP_DEVICE_ID){
+    await fetch(`${MP_BACKEND}/api/mp/point/cancelar`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({deviceId: MP_DEVICE_ID, paymentIntentId: currentPaymentIntent})
+    }).catch(()=>{});
+  }
+  clearInterval(pointPollInterval);
+  closePointWaiting();
+  currentPaymentIntent = null;
+  crtToast('Pago cancelado');
+}
+
 
 renderTicket();
 document.getElementById('ticketNum').textContent = '#' + genTicketId();
